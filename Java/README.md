@@ -4,9 +4,9 @@ Web PKI Java Sample
 This folder contains a web application written in Java that shows how to use the
 [Web PKI component](https://webpki.lacunasoftware.com/).
 
-For other languages, please visit the [project root](https://github.com/LacunaSoftware/WebPkiSamples).
+For other languages, please visit the [repository root](https://github.com/LacunaSoftware/WebPkiSamples).
 
-You can run the sample without any license as long as you access the web application on localhost. In order to execute the project
+You can run the sample without any license as long as the web application is running localhost. In order to run the project
 outside of localhost, you'll need a license for the Web PKI component. If you don't have one, [request a free trial license](https://webpki.lacunasoftware.com/#/Contact/GetTrial).
 
 If you need test certificates for development or staging environments, [click here](https://github.com/LacunaSoftware/WebPkiSamples#test-certificates).
