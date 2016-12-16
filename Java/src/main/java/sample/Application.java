@@ -21,7 +21,7 @@ public class Application {
 		// Temporary folder used to store uploaded files and signed PDFs and CMSs. The use of a temporary directory is
 		// solely for simplification purposes. In actual production code, the storage would typically be performed by your
 		// application's database.
-		tempFolderPath = Files.createTempDirectory("WebPkiSample");
+		tempFolderPath = Files.createTempDirectory("WebPkiJavaSample");
 
 		SpringApplication.run(Application.class, args);
 	}
