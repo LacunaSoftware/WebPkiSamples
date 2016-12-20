@@ -22,10 +22,17 @@ To run the project:
 2. In a command prompt, navigate to the folder `Java` and run the command
    `gradlew run` (on Linux `./gradlew run`). If you are using Windows, you can alternatively
    double-click the file `Run-Sample.bat`.
-  
+ 
 3. Once you see the message "Started Application in x.xxx seconds" (the on-screen percentage
    will *not* reach 100%), open a web browser and go the URL [http://localhost:8080/](http://localhost:8080/)
    
+
+Running the project using Maven instead of Gradle
+-------------------------------------------------
+
+If you prefer Maven over Gradle, follow the same steps as above but on step 2 instead of the gradle command execute `mvn spring-boot:run`
+   
+
 Opening the project on Eclipse or IDEA
 --------------------------------------
 
