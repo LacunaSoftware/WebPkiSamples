@@ -9,8 +9,6 @@ For other languages, please visit the [repository root](https://github.com/Lacun
 You can run the sample without any license as long as the web application is running localhost. In order to run the project
 outside of localhost, you'll need a license for the Web PKI component. If you don't have one, [request a free trial license](https://webpki.lacunasoftware.com/#/Contact/GetTrial).
 
-If you need test certificates for development or staging environments, [click here](https://github.com/LacunaSoftware/WebPkiSamples#test-certificates).
-
 Running the project
 -------------------
 
@@ -42,3 +40,10 @@ then import the project from Eclipse.
 To open the project on IntelliJ IDEA, run `gradlew idea` on the `Java` folder
 and then use the "Open" funcionality inside IDEA (works better than "Import").
 
+See also
+--------
+
+* [Web PKI website](https://webpki.lacunasoftware.com/)
+* [Online documentation](https://webpki.lacunasoftware.com/#/Documentation)
+* [Live demonstration](https://webpki.lacunasoftware.com/#/Demo)
+* [Test certificates](../TestCertificates.md)
