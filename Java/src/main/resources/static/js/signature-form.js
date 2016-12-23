@@ -107,7 +107,7 @@ var signatureForm = (function () {
     // -------------------------------------------------------------------------------------------------
     // Function called if an error occurs on the Web PKI component
     // -------------------------------------------------------------------------------------------------
-    var onWebPkiError = function() {
+    var onWebPkiError = function(message, error, origin) {
         // Unblock the UI
         $.unblockUI();
         // Log the error to the browser console (for debugging purposes)
