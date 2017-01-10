@@ -34,21 +34,17 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.*;
 
 /*
- * This is the controller responsible for the XML element signature sample. It responds two
- * routes:
- *
- * GET /xml-element-signature  - initiates the signature and renders the signature page
- * POST /xml-element-signature - completes the signature with data received from the signature page
+ * This is the controller responsible for the "Certificate selection with autocomplete" sample. The server-side code
+ * is actually a copy of the code for the XML element signature, since what really matters in the sample is the
+ * Javascript code for the autocomplete feature.
  */
 @Controller
-public class XmlElementSignatureController {
+public class CertificateAutocompleteController {
 
     /*
-     * GET /xml-element-signature
-     *
 	 * This action initiates a XML element signature and renders the signature page.
 	 */
-    @RequestMapping(value = "/xml-element-signature", method = {RequestMethod.GET})
+    @RequestMapping(value = "/cert-autocomplete", method = {RequestMethod.GET})
     public String get(
             Model model,
             HttpServletResponse response
@@ -69,16 +65,14 @@ public class XmlElementSignatureController {
 
         // Render the signature page with the "to sign hash" in a hidden field
         model.addAttribute("toSignHash", Base64.getEncoder().encodeToString(toSignHash));
-        return "xml-element-signature";
+        return "cert-autocomplete";
     }
 
     /*
-     * POST /xml-element-signature
-     *
      * This action receives the encoding of the certificate chosen by the user and the result of the signature
      * algorithm, both acquired with Web PKI on the page, and composes the XML signature with this data
-     */
-    @RequestMapping(value = "/xml-element-signature", method = {RequestMethod.POST})
+    */
+    @RequestMapping(value = "/cert-autocomplete", method = {RequestMethod.POST})
     public String postElement(
             @RequestParam(value = "certificate", required = true) String certificateBase64,
             @RequestParam(value = "signature", required = true) String signatureBase64,
