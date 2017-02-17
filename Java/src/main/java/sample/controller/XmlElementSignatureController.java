@@ -126,8 +126,8 @@ public class XmlElementSignatureController {
         XMLSignatureFactory sigFac = XMLSignatureFactory.getInstance("DOM");
 
         // Get the infNFe element and its ID
-        Element infNFeElement = (Element)doc.getElementsByTagNameNS("http://www.portalfiscal.inf.br/nfe", "infNFe").item(0);
-        String infNFeId = infNFeElement.getAttribute("Id");
+        Element toSignElement = (Element)doc.getElementsByTagNameNS("http://www.portalfiscal.inf.br/nfe", "infNFe").item(0);
+        String toSignElementId = toSignElement.getAttribute("Id");
 
         // Reference the infNFe element by its ID with:
         // - Transformations: "Enveloped" and canonicalization (Canonical XML 1.0)
@@ -136,7 +136,7 @@ public class XmlElementSignatureController {
         refTransforms.add(sigFac.newTransform(Transform.ENVELOPED, (TransformParameterSpec) null));
         refTransforms.add(sigFac.newCanonicalizationMethod(CanonicalizationMethod.INCLUSIVE, (C14NMethodParameterSpec) null));
         Reference ref = sigFac.newReference(
-                "#" + infNFeId,
+                "#" + toSignElementId,
                 sigFac.newDigestMethod(DigestMethod.SHA1, null),
                 refTransforms,
                 null,
@@ -154,8 +154,8 @@ public class XmlElementSignatureController {
         );
 
         // Sign with dummy key
-        DOMSignContext dsc = new DOMSignContext(getDummyPrivateKey(), doc.getDocumentElement());
-        dsc.setIdAttributeNS(infNFeElement, null, "Id");
+        DOMSignContext dsc = new DOMSignContext(getDummyPrivateKey(), toSignElement.getParentNode() /* signature will be added as sibling to the element being signed */);
+        dsc.setIdAttributeNS(toSignElement, null, "Id");
         XMLSignature signature = sigFac.newXMLSignature(si, null);
         signature.sign(dsc);
 
