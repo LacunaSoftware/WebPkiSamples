@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html lang="en" ng-app="WebPkiLocalDemoApp">
+<head>
+	<meta charset="UTF-8" />
+	<title>Web PKI Local Signature Samples</title>
+	<link rel="stylesheet" href="css/bootstrap.css">
+	<link rel="stylesheet" href="css/bootstrap-theme.css">
+	<link rel="stylesheet" href="css/angular-block-ui.css">
+	<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="/">Web PKI Local Signature Samples</a>
+			</div>
+			<div id="navbar" class="collapse navbar-collapse">
+				<ul class="nav navbar-nav">
+					<li class="dropdown">
+						<a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" onclick="return false">Local Signatures <span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+							<li><a href="signPdfView.html">Sign PDF</a></li>
+							<li><a href="signCadesView.html">Sign CAdES</a></li>
+							<li><a href="validatePadesView.html">Validate PAdES</a></li>
+							<li><a href="validateCadesView.html">Validate CAdES</a></li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+	<div class="container">
+
+		<h3>Local CAdES Signer Sample</h3>
+		<div ng-controller="cadesSignerController">
+			<div class="row">
+				<div class="col-md-12">
+					<form role="form">
+						<div class="form-group">
+							<label for="certificateSelect">Selecione um certificado</label>
+							<div class="row">
+								<div class="col-xs-10">
+									<select id="certificateSelect" class="form-control" ng-options="(cert.subjectName + ' (emitido por ' + cert.issuerName + ', expira em ' + (cert.validityEnd | date:'dd/MM/yyyy') + ')') for cert in certificates" ng-model="selectedCertificate">
+										<option value="">Selecione ...</option>
+									</select>
+								</div>
+								<div class="col-xs-2">
+									<button type="button" class="btn btn-default" ng-click="refreshCertificates()">
+										<span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Recarregar
+									</button>
+								</div>
+							</div>
+						</div>
+						<div class="form-group" ng-show="file == null">
+							<p>
+								<input type="checkbox" id="cbAutoDetectCosign" ng-model="autoDetectCosign" /> <label for="cbAutoDetectCosign">Auto detect co-sign</label><br />
+								<input type="checkbox" id="cbIncludeEContent" ng-model="includeEncapsulatedContent" /> <label for="cbIncludeEContent">Include encapsulated-content</label>
+							</p>
+						</div>
+						<div class="form-group" ng-show="file == null">
+							<label>Selecione os arquivos a serem assinados</label>
+							<button type="button" class="btn btn-default" ng-click="selectFiles()" ng-disabled="state != 'input'">
+								<span class="glyphicon glyphicon-search" aria-hidden="true"></span> Selecionar
+							</button>
+							<div ng-show="files.length > 0">
+								{{ files.length }} arquivos selecionados
+								<div style="border: 1px solid black; padding: 10px; margin-top: 0.5em; margin-bottom: 1em;">
+									<div class="row" ng-repeat="file in files">
+										<div class="col-md-5">
+											<a href="" ng-click="openFile(file)">{{ file.name }}</a> ({{ getDisplaySize(file.length) }})
+										</div>
+										<div class="col-md-6" ng-if="file.signatureInfo != null">
+											<span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+											<a href="" ng-click="openFile(file.signatureInfo.file)">{{ file.signatureInfo.file.name }}</a>
+											[<a href="" ng-click="showDetails(file)" style="font-size: 0.9em">show details</a>]
+											[<a href="" ng-click="openFolder(file)" style="font-size: 0.9em">open file location</a>]
+										</div>
+										<div class="col-md-6" ng-if="file.error != null">
+											<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+											{{ file.error }}
+										</div>
+									</div>
+								</div>
+								<button type="button" class="btn btn-default btn-xs" ng-click="resetFiles()" ng-disabled="state != 'input'">
+									<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> desfazer seleção
+								</button>
+							</div>
+						</div>
+						<p>
+							<button type="button" class="btn btn-primary btn-lg" ng-click="sign()" ng-disabled="state != 'input'">
+								<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Assinar
+							</button>
+						</p>
+						<p>
+							<button type="button" class="btn btn-default" ng-click="reset()" ng-show="state == 'finished'">
+								<span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span> Assinar mais arquivos
+							</button>
+						</p>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="js/jquery.js"></script>
+	<script src="js/bootstrap.js"></script>
+	<script src="js/angular.js"></script>
+	<script src="js/ui-bootstrap-tpls.js"></script>
+	<script src="js/angular-block-ui.js"></script>
+	<script src="js/lacuna-web-pki-2.5.0-latest.js"></script>
+	
+	<script src="app/app.js"></script>
+	<script src="app/cadesSignerController.js"></script>
+	<script src="app/dialogController.js"></script>
+	<script src="app/signerDialogController.js"></script>
+
+</body>
+</html>

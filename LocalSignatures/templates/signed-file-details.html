@@ -1,0 +1,55 @@
+<div class="modal-header">
+	<h4 class="modal-title">Detalhes do Arquivo</h4>
+</div>
+
+<div class="modal-body">
+
+	<form class="form-horizontal" role="form">
+
+		<div class="form-group">
+			<label class="col-sm-3 control-label">Original File</label>
+			<div class="col-sm-9">
+				<p class="form-control-static">
+					<a href="" ng-click="openFile(model)">{{ model.name }}</a>
+					({{ getDisplaySize(model.length) }})
+				</p>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-sm-3 control-label">Signed File</label>
+			<div class="col-sm-9">
+				<p class="form-control-static">
+					<a href="" ng-click="openFile(model.signatureInfo.file)">{{ model.signatureInfo.file.name }}</a>
+					({{ getDisplaySize(model.signatureInfo.file.length) }})
+				</p>
+			</div>
+		</div>
+
+		<div class="form-group" ng-show="model.signatureInfo.pagesCount != null">
+			<label class="col-sm-3 control-label">Pages count</label>
+			<div class="col-sm-9">
+				<p class="form-control-static">{{ model.signatureInfo.pagesCount }}</p>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-sm-3 control-label">Message Digest {{ model.signatureInfo.messageDigest.digestAlgorithmName }}</label>
+			<div class="col-sm-9">
+				<p class="form-control-static">{{ model.signatureInfo.messageDigest.digestValue}}</p>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-sm-3 control-label">Date/time</label>
+			<div class="col-sm-9">
+				<p class="form-control-static">{{ model.signatureInfo.signingTime | date : 'dd/MM/yyyy HH:mm:ss' }}</p>
+			</div>
+		</div>
+
+	</form>
+</div>
+
+<div class="modal-footer">
+	<button class="btn btn-primary" ng-click="OKClick()">OK</button>
+</div>

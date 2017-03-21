@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html lang="en" ng-app="WebPkiLocalDemoApp">
+<head>
+	<meta charset="UTF-8" />
+	<title>Web PKI Local Signature Samples</title>
+	<link rel="stylesheet" href="css/bootstrap.css">
+	<link rel="stylesheet" href="css/bootstrap-theme.css">
+	<link rel="stylesheet" href="css/angular-block-ui.css">
+	<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="/">Web PKI Local Signature Samples</a>
+			</div>
+			<div id="navbar" class="collapse navbar-collapse">
+				<ul class="nav navbar-nav">
+					<li class="dropdown">
+						<a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" onclick="return false">Local Signatures <span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+							<li><a href="signPdfView.html">Sign PDF</a></li>
+							<li><a href="signCadesView.html">Sign CAdES</a></li>
+							<li><a href="validatePadesView.html">Validate PAdES</a></li>
+							<li><a href="validateCadesView.html">Validate CAdES</a></li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+    <div class="container">
+        <h3>Simple Sign</h3>
+        <div ng-controller="simpleSignController">
+
+            <div class="row">
+                <div class="col-xs-2">
+                    <button type="button" class="btn btn-default" ng-click="sign()">
+                        <span class="glyphicon glyphicon-search" aria-hidden="true"></span> Sign
+                    </button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-2">
+                    <button type="button" class="btn btn-default" ng-click="signMulti()">
+                        <span class="glyphicon glyphicon-search" aria-hidden="true"></span> SignMulti
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/angular.js"></script>
+    <script src="js/ui-bootstrap-tpls.js"></script>
+    <script src="js/angular-block-ui.js"></script>
+    <script src="js/lacuna-web-pki-2.5.0-latest.js"></script>
+    
+    <script src="app/app.js"></script>
+    <script src="app/simpleSignController.js"></script>
+    <script src="app/dialogController.js"></script>
+
+</body>
+</html>
