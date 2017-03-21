@@ -90,6 +90,10 @@
 											<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
 											{{ file.error }}
 										</div>
+										<div class="col-md-6" ng-if="file.validationResults != null">
+											<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+											<a href="" ng-click="showValidationResults(file)">falha na validação</a>
+										</div>
 									</div>
 								</div>
 								<button type="button" class="btn btn-default btn-xs" ng-click="resetFiles()" ng-disabled="state != 'input'">
@@ -127,6 +131,7 @@
 	<script src="app/pdfSignerController.js"></script>
 	<script src="app/dialogController.js"></script>
 	<script src="app/signerDialogController.js"></script>
+	<script src="app/validationResultsDialogController.js"></script>
 
 </body>
 </html>

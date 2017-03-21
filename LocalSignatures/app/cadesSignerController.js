@@ -118,7 +118,11 @@ app.controller('cadesSignerController', ['$scope', '$http', '$modal', 'blockUI',
 					}
                 ]
             }).success(function (result) {
-                file.signatureInfo = result.signatureInfo;
+				if (result.isValid) {
+					file.signatureInfo = result.signatureInfo;
+				} else {
+					file.validationResults = result.signingCertificateValidationResults;
+				}
                 signNextFile();
             }).error(function (e) {
                 file.error = e;
@@ -149,6 +153,17 @@ app.controller('cadesSignerController', ['$scope', '$http', '$modal', 'blockUI',
 				model: function () { return file; },
 				pki: function () { return pki; }
 			}
+		});
+	};
+	
+	$scope.showValidationResults = function (file) {
+		$modal.open({
+			templateUrl: 'templates/validation-results.html',
+			controller: 'validationResultsDialogController',
+			resolve: {
+				model: function () { return file.validationResults; }
+			},
+			size: 'lg'
 		});
 	};
 
