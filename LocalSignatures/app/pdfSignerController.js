@@ -12,8 +12,8 @@ app.controller('pdfSignerController', ['$scope', '$http', '$modal', 'blockUI', '
 		right: false
 	};
 
-	var pkiLicense = null; // Para testar fora do "localhost", colocar licença de uso do Web PKI aqui
-	var pki = new LacunaWebPKI(pkiLicense);
+	// To test outside of "localhost", place your Web PKI license on the variable "webPkiLicense" (file app.js)
+	var pki = new LacunaWebPKI(webPkiLicense);
 
 	var init = function () {
 		blockUI.start('Inicializando ...');

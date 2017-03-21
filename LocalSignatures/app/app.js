@@ -1,3 +1,8 @@
+// ----------------------------------------------------------------
+// To test outside of "localhost", place your Web PKI license below
+// ----------------------------------------------------------------
+var webPkiLicense = null;
+
 var app = angular.module('WebPkiLocalDemoApp', ['ui.bootstrap', 'blockUI']);
 
 app.config(['blockUIConfig', function (blockUIConfig) {
