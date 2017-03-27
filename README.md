@@ -22,3 +22,4 @@ See also
 * [Online documentation](https://webpki.lacunasoftware.com/#/Documentation)
 * [Live demonstration](https://webpki.lacunasoftware.com/#/Demo)
 * [Test certificates](TestCertificates.md)
+* [Certificate properties](CertificateProperties.md)
