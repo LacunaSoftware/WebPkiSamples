@@ -1,5 +1,5 @@
-Available fields on listed certificates
-=======================================
+Certificate Properties
+======================
 
 The function `listCertificates()` returns an array of certificates. For each certificate, these are the properties available and their JavaScript types:
 
@@ -18,4 +18,6 @@ The function `listCertificates()` returns an array of certificates. For each cer
 	* `certificateType` (`String`) - Type of the certificate (e.g.: "A1", "A3")
 	* `isAplicacao` (`Boolean`) - Indicates whether the certificate is an application certificate
 	* `isPessoaFisica` (`Boolean`) - Indicates whether the certificate is a "personal certificate" (*certificado de pessoa física*)
-	* `isPessoaJuridica` (`Boolean`) - Indicates whether the certificate is an "enterprise certificate (*certificate de pessoa jurídica*)
+	* `isPessoaJuridica` (`Boolean`) - Indicates whether the certificate is an "enterprise certificate" (*certificado de pessoa jurídica*)
+* `pkiItaly` (`Object`) - Object containing the following Italy-specific properties:
+	* codiceFiscale (`String`) - The subject's fiscal code (*codice fiscale*)
