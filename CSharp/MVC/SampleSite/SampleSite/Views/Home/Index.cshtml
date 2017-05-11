@@ -9,6 +9,7 @@
 	<script language="javascript">
 		var pki = new LacunaWebPKI();
 		var allCerts = [];
+		var hashSignature = "";
 
 		function start() {
 			log('Initializing component ...');
@@ -93,7 +94,9 @@
 				hash: base64String,
 				digestAlgorithm: 'SHA-256'
 			}).success(function (signature) {
-				$('#sigHashInfoPanel').append('Signature: '+signature);
+				hashSignature = signature;
+				$('#sigHashInfoPanel').append('Signature: ' + signature);
+				$('#verifyHashButton').prop("disabled", false);
 				log('Result: ' + signature);
 			});
 		}
@@ -114,10 +117,23 @@
 			$('#certInfoPanel').append('<h3>Certificate Information</h3>');
 		}
 
+
+		function verifyHash() {
+			var selectedCertThumb = $('#certificateSelect').val();
+			var data = $('#signHash').val();
+			pki.readCertificate(selectedCertThumb).success(function (certEncoding) {
+				$.post("api/sign/validate", { originalMessage: data, signedMessage: hashSignature, certificate: certEncoding }, function (data, status) {
+					$('#sigHashInfoPanel').append('<br/><br/>Validate: ' + data+'<br/>');
+				});
+			});
+		}
+
 		$(function () {
 			$('#readCertButton').click(readCert);
 			$('#signDataButton').click(signData);
 			$('#signHashButton').click(signHash);
+			$('#verifyHashButton').click(verifyHash);
+			$('#verifyHashButton').prop("disabled", true);
 			start();
 		});
 
@@ -161,6 +177,7 @@
 			<input class="form-control" maxlength="60" id="signHash" value="Some data" />
 		</div>		
 		<button id="signHashButton" class="btn btn-info" type="button">Sign Hash</button>
+		<button id="verifyHashButton" class="btn btn-info" type="button">Verify Signature</button>
 	</div>
 	<div class="col-md-6" style="word-wrap: break-word;">
 		<h3>Signature Data</h3>
