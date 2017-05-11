@@ -1,12 +1,14 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+	ViewBag.Title = "Home Page";
 }
 
 @section scripts {
 	<script type="text/javascript" src="https://get.webpkiplugin.com/Scripts/LacunaWebPKI/lacuna-web-pki-2.5.0.js"></script>
+	<script src="https://rawgit.com/emn178/js-sha256/master/build/sha256.min.js"></script>
 
 	<script language="javascript">
 		var pki = new LacunaWebPKI();
+		var allCerts = [];
 
 		function start() {
 			log('Initializing component ...');
@@ -15,15 +17,16 @@
 
 		function onWebPkiReady() {
 			log('Component ready, listing certificates ...');
-			pki.listCertificates().success(function(certs) {
+			pki.listCertificates().success(function (certs) {
+				allCerts = certs;
 				log(certs.length + ' certificates found.');
 				var select = $('#certificateSelect');
 				$.each(certs,
-					function() {
+					function () {
 						select.append(
 							$('<option />')
-							.val(this.thumbprint)
-							.text(this.subjectName + ' (issued by ' + this.issuerName + ')')
+								.val(this.thumbprint)
+								.text(this.subjectName + ' (issued by ' + this.issuerName + ')')
 						);
 					});
 			});
@@ -31,45 +34,87 @@
 
 		function readCert() {
 			var selectedCertThumb = $('#certificateSelect').val();
-			log('Reading certificate: ' + selectedCertThumb);
-			pki.readCertificate(selectedCertThumb).success(function(certEncoding) {
-				log('Result: ' + certEncoding);
-			});
+			clearCertInfo();
+			$.each(allCerts,
+				function () {
+					if (selectedCertThumb === this.thumbprint) {
+						logCertInfo('Thumbprint: ' + this.thumbprint);
+						logCertInfo('Subject Name: ' + this.subjectName);
+						logCertInfo('Issued Name: ' + this.issuerName);
+						logCertInfo('Validity Start: ' + this.validityStart);
+						logCertInfo('Validity End: ' + this.validityEnd);
+						if (this.pkiBrazil.certificateType !== "Unknown") {
+							logCertInfo('Certificate Type: ' + this.pkiBrazil.certificateType);
+							logCertInfo('CPF: ' + this.pkiBrazil.cpf);
+							logCertInfo('Date Of Birth: ' + this.pkiBrazil.dateOfBirth);
+							logCertInfo('Responsável: ' + this.pkiBrazil.responsavel);
+							if (this.pkiBrazil.isPessoaJuridica === true) {
+								logCertInfo('CNPJ: ' + this.pkiBrazil.cnpj);
+							}
+						}
+						logCertInfo('Key Usage: ');
+						logCertInfo('&nbsp&nbsp;&nbsp&nbsp;CRL Sign: ' + this.keyUsage.crlSign);
+						logCertInfo('&nbsp&nbsp;&nbsp&nbsp;Data Encipherment: ' + this.keyUsage.dataEncipherment);
+						logCertInfo('&nbsp&nbsp;&nbsp&nbsp;Digital Signature: ' + this.keyUsage.digitalSignature);
+						logCertInfo('&nbsp&nbsp;&nbsp&nbsp;Key Encipherment: ' + this.keyUsage.keyEncipherment);
+						logCertInfo('&nbsp&nbsp;&nbsp&nbsp;Non Repudiation: ' + this.keyUsage.nonRepudiation);
+					}
+				}
+			);
 		}
 
 		function signData() {
+			$('#sigInfoPanel').empty();
 			var selectedCertThumb = $('#certificateSelect').val();
 			log('Signing data with certificate: ' + selectedCertThumb);
+			var data = $('#signData').val();
+			var dataToSign = btoa(data);
 			pki.signData({
 				thumbprint: selectedCertThumb,
-				data: 'SGVsbG8sIFdvcmxkIQ==', // ASCII encoding of the string "Hello, World!", encoded in Base64
+				data: dataToSign,
 				digestAlgorithm: 'SHA-256'
-			}).success(function(signature) {
+			}).success(function (signature) {
+				$('#sigInfoPanel').append(signature);
 				log('Result: ' + signature);
 			});
 		}
 
 		function signHash() {
+			$('#sigHashInfoPanel').empty();
 			var selectedCertThumb = $('#certificateSelect').val();
 			log('Signing hash with certificate: ' + selectedCertThumb);
+			var data = $('#signHash').val();
+			var hashToSign = sha256.arrayBuffer(data);
+			var base64String = btoa(String.fromCharCode.apply(null, new Uint8Array(hashToSign)));
+			
+			$('#sigHashInfoPanel').append('Hash: ' + base64String  + '<br/><br/>');
 			pki.signHash({
 				thumbprint: selectedCertThumb,
-				hash:
-					'3/1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8=', // Base64 encoding of the SHA-256 digest of the ASCII encoding of the string "Hello, World!"
+				hash: base64String,
 				digestAlgorithm: 'SHA-256'
-			}).success(function(signature) {
+			}).success(function (signature) {
+				$('#sigHashInfoPanel').append('Signature: '+signature);
 				log('Result: ' + signature);
 			});
 		}
 
 		function log(message) {
-			$('#logPanel').append('<p>' + message + '</p>');
+			//$('#logPanel').append('<p>' + message + '</p>');
 			if (window.console) {
 				window.console.log(message);
 			}
 		}
 
-		$(function() {
+		function logCertInfo(message) {
+			$('#certInfoPanel').append(message + '<br/>');
+		}
+
+		function clearCertInfo() {
+			$('#certInfoPanel').empty();
+			$('#certInfoPanel').append('<h3>Certificate Information</h3>');
+		}
+
+		$(function () {
 			$('#readCertButton').click(readCert);
 			$('#signDataButton').click(signData);
 			$('#signHashButton').click(signHash);
@@ -79,35 +124,56 @@
 
 	</script>
 }
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+
+<div class="row">
+	<div class="col-md-6">
+		<h3>Certificates Installed in your machine</h3>
+		<select id="certificateSelect" style="font-size: 1em"></select>
+		<br />
+		<br />
+		<button id="readCertButton" class="btn btn-info" type="button">Read Certificate Informations</button>
+	</div>
+	<div class="col-md-6" id="certInfoPanel">
+		<h3>Certificate Information</h3>
+	</div>
+</div>
+<hr/>
+<div class="row">
+	<div class="col-md-6">
+		<h3>Sign Data with RSA SHA-256</h3>
+		<div class="form-group">
+			<label for="signData">Text to sign</label>
+			<input class="form-control" maxlength="60" id="signData" value="Some data" />
+		</div>
+		<button id="signDataButton" class="btn btn-info" type="button">Sign Data</button>
+	</div>
+	<div class="col-md-6" style ="word-wrap: break-word;">
+		<h3>Signature Data</h3>
+		<div id="sigInfoPanel"></div>
+	</div>
+</div>
+<hr />
+<div class="row">
+	<div class="col-md-6">
+		<h3>Sign Hash</h3>
+		<div class="form-group">
+			<label for="signHash">Text to sign</label>
+			<input class="form-control" maxlength="60" id="signHash" value="Some data" />
+		</div>		
+		<button id="signHashButton" class="btn btn-info" type="button">Sign Hash</button>
+	</div>
+	<div class="col-md-6" style="word-wrap: break-word;">
+		<h3>Signature Data</h3>
+		<div id="sigHashInfoPanel"></div>
+	</div>
 </div>
 
 <div class="row">
-	<div class="col-md-4">
-		<h2>Getting started</h2>
-		<p>
-			ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-			enables a clean separation of concerns and gives you full control over markup
-			for enjoyable, agile development.
-		</p>
-		<p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-	</div>
-	<div class="col-md-4">
-		<h2>Get more libraries</h2>
-		<p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-		<p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-	</div>
-	<div class="col-md-4">
-		<h2>Web Hosting</h2>
-		<p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-		<p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+	<div class="col-md-8">
+		@*<h3>Messages</h3>*@
+		<div id="logPanel">
+		</div>
 	</div>
 </div>
-<select id="certificateSelect"></select>
-<button id="readCertButton" type="button">Read Cert</button>
-<button id="signDataButton" type="button">Sign Data</button>
-<button id="signHashButton" type="button">Sign Hash</button>
-<div id="logPanel"></div>
+
+
