@@ -1,0 +1,113 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+@section scripts {
+	<script type="text/javascript" src="https://get.webpkiplugin.com/Scripts/LacunaWebPKI/lacuna-web-pki-2.5.0.js"></script>
+
+	<script language="javascript">
+		var pki = new LacunaWebPKI();
+
+		function start() {
+			log('Initializing component ...');
+			pki.init(onWebPkiReady);
+		}
+
+		function onWebPkiReady() {
+			log('Component ready, listing certificates ...');
+			pki.listCertificates().success(function(certs) {
+				log(certs.length + ' certificates found.');
+				var select = $('#certificateSelect');
+				$.each(certs,
+					function() {
+						select.append(
+							$('<option />')
+							.val(this.thumbprint)
+							.text(this.subjectName + ' (issued by ' + this.issuerName + ')')
+						);
+					});
+			});
+		}
+
+		function readCert() {
+			var selectedCertThumb = $('#certificateSelect').val();
+			log('Reading certificate: ' + selectedCertThumb);
+			pki.readCertificate(selectedCertThumb).success(function(certEncoding) {
+				log('Result: ' + certEncoding);
+			});
+		}
+
+		function signData() {
+			var selectedCertThumb = $('#certificateSelect').val();
+			log('Signing data with certificate: ' + selectedCertThumb);
+			pki.signData({
+				thumbprint: selectedCertThumb,
+				data: 'SGVsbG8sIFdvcmxkIQ==', // ASCII encoding of the string "Hello, World!", encoded in Base64
+				digestAlgorithm: 'SHA-256'
+			}).success(function(signature) {
+				log('Result: ' + signature);
+			});
+		}
+
+		function signHash() {
+			var selectedCertThumb = $('#certificateSelect').val();
+			log('Signing hash with certificate: ' + selectedCertThumb);
+			pki.signHash({
+				thumbprint: selectedCertThumb,
+				hash:
+					'3/1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8=', // Base64 encoding of the SHA-256 digest of the ASCII encoding of the string "Hello, World!"
+				digestAlgorithm: 'SHA-256'
+			}).success(function(signature) {
+				log('Result: ' + signature);
+			});
+		}
+
+		function log(message) {
+			$('#logPanel').append('<p>' + message + '</p>');
+			if (window.console) {
+				window.console.log(message);
+			}
+		}
+
+		$(function() {
+			$('#readCertButton').click(readCert);
+			$('#signDataButton').click(signData);
+			$('#signHashButton').click(signHash);
+			start();
+		});
+
+
+	</script>
+}
+<div class="jumbotron">
+    <h1>ASP.NET</h1>
+    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
+    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+</div>
+
+<div class="row">
+	<div class="col-md-4">
+		<h2>Getting started</h2>
+		<p>
+			ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
+			enables a clean separation of concerns and gives you full control over markup
+			for enjoyable, agile development.
+		</p>
+		<p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+	</div>
+	<div class="col-md-4">
+		<h2>Get more libraries</h2>
+		<p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
+		<p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
+	</div>
+	<div class="col-md-4">
+		<h2>Web Hosting</h2>
+		<p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
+		<p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+	</div>
+</div>
+<select id="certificateSelect"></select>
+<button id="readCertButton" type="button">Read Cert</button>
+<button id="signDataButton" type="button">Sign Data</button>
+<button id="signHashButton" type="button">Sign Hash</button>
+<div id="logPanel"></div>
