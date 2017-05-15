@@ -1,17 +1,32 @@
 ﻿@{
-	ViewBag.Title = "Home Page";
+   ViewBag.Title = "Home Page";
 }
-
 @section scripts {
 	<script type="text/javascript" src="https://get.webpkiplugin.com/Scripts/LacunaWebPKI/lacuna-web-pki-2.5.0.js"></script>
 	<script src="https://rawgit.com/emn178/js-sha256/master/build/sha256.min.js"></script>
-
 	<script language="javascript">
-		var pki = new LacunaWebPKI();
+
+		// -------------------------------------------------------------------------------------------------
+		// If you have a license of the Web PKI component, place it below (you need a license to run the
+		// application outside of localhost)
+		// -------------------------------------------------------------------------------------------------
+		var webPkiLicense = null;
+		//                  ^^^^--- Web PKI license goes here
+		// -------------------------------------------------------------------------------------------------
+
+		var pki = new LacunaWebPKI(webPkiLicense);
 		var allCerts = [];
 		var hashSignature = "";
 
 		function start() {
+			var nowStr = new Date().toISOString();
+			$('#signData').val(nowStr);
+			$('#signHash').val(nowStr);
+			$('#readCertButton').click(readCert);
+			$('#signDataButton').click(signData);
+			$('#signHashButton').click(signHash);
+			$('#verifyHashButton').click(verifyHash);
+			$('#verifyHashButton').prop("disabled", true);
 			log('Initializing component ...');
 			pki.init(onWebPkiReady);
 		}
@@ -87,8 +102,8 @@
 			var data = $('#signHash').val();
 			var hashToSign = sha256.arrayBuffer(data);
 			var base64String = btoa(String.fromCharCode.apply(null, new Uint8Array(hashToSign)));
-			
-			$('#sigHashInfoPanel').append('Hash: ' + base64String  + '<br/><br/>');
+
+			$('#sigHashInfoPanel').append('Hash: ' + base64String + '<br/><br/>');
 			pki.signHash({
 				thumbprint: selectedCertThumb,
 				hash: base64String,
@@ -122,38 +137,39 @@
 			var selectedCertThumb = $('#certificateSelect').val();
 			var data = $('#signHash').val();
 			pki.readCertificate(selectedCertThumb).success(function (certEncoding) {
-				$.post("api/sign/validate", { originalMessage: data, signedMessage: hashSignature, certificate: certEncoding }, function (data, status) {
-					$('#sigHashInfoPanel').append('<br/><br/>Validate: ' + data+'<br/>');
+				$.ajax({
+					method: 'POST',
+					url: '/api/sign/validate',
+					data: JSON.stringify({
+						originalMessage: data,
+						signedMessage: hashSignature,
+						certificate: certEncoding
+					}),
+					contentType: 'application/json; charset=utf-8',
+					dataType: 'json',
+					success: function (result, status) {
+						$('#sigHashInfoPanel').append('<br/><br/>Validate: ' + result + '<br/>');
+					}
 				});
 			});
 		}
 
-		$(function () {
-			$('#readCertButton').click(readCert);
-			$('#signDataButton').click(signData);
-			$('#signHashButton').click(signHash);
-			$('#verifyHashButton').click(verifyHash);
-			$('#verifyHashButton').prop("disabled", true);
-			start();
-		});
-
-
+		$(start);
 	</script>
 }
-
 <div class="row">
 	<div class="col-md-6">
-		<h3>Certificates Installed in your machine</h3>
+		<h3>Your certificates</h3>
 		<select id="certificateSelect" style="font-size: 1em"></select>
 		<br />
 		<br />
-		<button id="readCertButton" class="btn btn-info" type="button">Read Certificate Informations</button>
+		<button id="readCertButton" class="btn btn-info" type="button">Show Certificate Information</button>
 	</div>
 	<div class="col-md-6" id="certInfoPanel">
 		<h3>Certificate Information</h3>
 	</div>
 </div>
-<hr/>
+<hr />
 <div class="row">
 	<div class="col-md-6">
 		<h3>Sign Data with RSA SHA-256</h3>
@@ -163,7 +179,7 @@
 		</div>
 		<button id="signDataButton" class="btn btn-info" type="button">Sign Data</button>
 	</div>
-	<div class="col-md-6" style ="word-wrap: break-word;">
+	<div class="col-md-6" style="word-wrap: break-word;">
 		<h3>Signature Data</h3>
 		<div id="sigInfoPanel"></div>
 	</div>
@@ -175,7 +191,7 @@
 		<div class="form-group">
 			<label for="signHash">Text to sign</label>
 			<input class="form-control" maxlength="60" id="signHash" value="Some data" />
-		</div>		
+		</div>
 		<button id="signHashButton" class="btn btn-info" type="button">Sign Hash</button>
 		<button id="verifyHashButton" class="btn btn-info" type="button">Verify Signature</button>
 	</div>
@@ -184,7 +200,6 @@
 		<div id="sigHashInfoPanel"></div>
 	</div>
 </div>
-
 <div class="row">
 	<div class="col-md-8">
 		@*<h3>Messages</h3>*@
@@ -192,5 +207,4 @@
 		</div>
 	</div>
 </div>
-
 

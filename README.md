@@ -6,6 +6,7 @@ This repository contains sample web applications demonstrating the use of the [W
 Choose one of the following programming languages to see the available sample projects:
 
 * [Java](Java/)
+* [C#](CSharp/)
 
 Running samples outside of localhost
 ------------------------------------
