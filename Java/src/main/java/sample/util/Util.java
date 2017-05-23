@@ -10,7 +10,15 @@ import java.io.InputStream;
 public class Util {
 
     public static byte[] getSampleNFe() throws IOException {
-        Resource resource = new ClassPathResource("/static/SampleNFe.xml");
+        return getResourceFile("/static/SampleNFe.xml");
+    }
+
+    public static byte[] getSampleLoteRps() throws IOException {
+        return getResourceFile("/static/LoteRps.xml");
+    }
+
+    private static byte[] getResourceFile(String path) throws IOException {
+        Resource resource = new ClassPathResource(path);
         InputStream fileStream = resource.getInputStream();
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         org.apache.commons.io.IOUtils.copy(fileStream, buffer);

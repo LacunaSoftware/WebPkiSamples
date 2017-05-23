@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head th:include="head"></head>
+<body>
+
+<div th:replace="menu"></div>
+
+<div class="container">
+
+    <h2>XML Element Signature</h2>
+
+    <form action="/double-xml-element-signature-loterps" id="signForm" method="POST">
+
+        <!--/* render the "to sign hash" in a hidden input field */-->
+        <input type="hidden" id="toSignHashField" name="toSignHash" th:value="${toSignHash}" />
+
+        <!--/* hidden field for the certificate content */-->
+        <input type="hidden" id="certificateField" name="certificate" th:value="${certificate}" />
+
+        <!--/* hidden field for the certificate thumbprint */-->
+        <input type="hidden" id="certThumbField" name="certThumb" th:value="${certThumb}" />
+
+        <!--/* hidden field for the previous signed XML name */-->
+        <input type="hidden" id="filenameField" name="filename" th:value="${filename}" />
+
+        <!--/* hidden field for the RSA signature (we'll fill this later on programmatically and post it to the server) */-->
+        <input type="hidden" id="signatureField" name="signature" />
+
+    </form>
+
+    <!--/*
+        Once the page is loaded, we initialize the "javascript module" signatureForm passing references to our HTML
+        elements. The module will make the appropriate button wire-ups, perform the necessary computations using Web PKI
+        and submit our form once the process is complete (see file resources/static/js/signature-preselected-cert-form.js)
+     */-->
+    <script>
+        $(document).ready(function () {
+            signaturePreSelectedCertForm.init({
+                form: $('#signForm'),
+                toSignHashField: $('#toSignHashField'),
+                certificateField: $('#certificateField'),
+                signatureField: $('#signatureField'),
+                certThumbField: $('#certThumbField')
+            });
+        });
+    </script>
+
+</div>
+</body>
+</html>

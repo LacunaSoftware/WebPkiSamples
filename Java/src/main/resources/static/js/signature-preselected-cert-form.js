@@ -6,7 +6,7 @@ var webPkiLicense = null;
 //                  ^^^^--- Web PKI license goes here
 // -------------------------------------------------------------------------------------------------
 
-var signatureForm = (function () {
+var signaturePreSelectedCertForm = (function () {
 
     var pki = null;
     var formElements = {};
@@ -18,11 +18,7 @@ var signatureForm = (function () {
 
         formElements = fe;
 
-        // Wire-up of button clicks
-        formElements.signButton.click(sign);
-        formElements.refreshButton.click(refresh);
-
-        // Block the UI while we get things ready
+        // Block the UI while we perform the signature
         $.blockUI();
 
         // Instantiate the "LacunaWebPKI" object
@@ -34,65 +30,18 @@ var signatureForm = (function () {
         // https://webpki.lacunasoftware.com/#/Documentation#coding-the-first-lines
         // http://webpki.lacunasoftware.com/Help/classes/LacunaWebPKI.html#method_init
         pki.init({
-            ready: loadCertificates, // as soon as the component is ready we'll load the certificates
+            ready: sign, // as soon as the component is ready we'll load the certificates
             defaultError: onWebPkiError
         });
     };
 
     // -------------------------------------------------------------------------------------------------
-    // Function called when the user clicks the "Refresh" button
-    // -------------------------------------------------------------------------------------------------
-    var refresh = function() {
-        // Block the UI while we load the certificates
-        $.blockUI();
-        // Invoke the loading of the certificates
-        loadCertificates();
-    };
-
-	// -------------------------------------------------------------------------------------------------
-	// Function that loads the certificates, either on startup or when the user
-	// clicks the "Refresh" button. At this point, the UI is already blocked.
-	// -------------------------------------------------------------------------------------------------
-    var loadCertificates = function() {
-
-        // Call the listCertificates() method to list the user's certificates
-        pki.listCertificates({
-
-            // specify that expired certificates should be ignored
-            //filter: pki.filters.isWithinValidity,
-
-            // in order to list only certificates within validity period and having a CPF (ICP-Brasil), use this instead:
-            //filter: pki.filters.all(pki.filters.hasPkiBrazilCpf, pki.filters.isWithinValidity),
-
-            // id of the select to be populated with the certificates
-            selectId: formElements.certificateSelect.attr('id'),
-
-            // function that will be called to get the text that should be displayed for each option
-            selectOptionFormatter: function (cert) {
-                return cert.subjectName + ' (expires on ' + cert.validityEnd.toDateString() + ', issued by ' + cert.issuerName + ')';
-            }
-
-        }).success(function () {
-
-            // once the certificates have been listed, unblock the UI
-            $.unblockUI();
-
-        });
-    };
-
-    // -------------------------------------------------------------------------------------------------
-    // Function called when the user clicks the "Sign" button
+    // Function called when the Web PKI component loads
     // -------------------------------------------------------------------------------------------------
     var sign = function() {
 
-        // Block the UI while we perform the signature
-        $.blockUI();
-
         // Get the thumbprint of the selected certificate
-        var selectedCertThumbprint = formElements.certificateSelect.val();
-        if (formElements.certThumbField) {
-            formElements.certThumbField.val(selectedCertThumbprint);
-        }
+        var selectedCertThumbprint = formElements.certThumbField.val();
 
         pki.readCertificate(selectedCertThumbprint).success(function (certificate) {
             formElements.certificateField.val(certificate);

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head th:include="head"></head>
+<body>
+
+<div th:replace="menu"></div>
+
+<div class="container">
+
+    <h2>Double XML Element Signature</h2>
+
+    <form id="signForm" method="POST">
+
+        <!--/* render the "to sign hash" in a hidden input field */-->
+        <input type="hidden" id="toSignHashField" name="toSignHash" th:value="${toSignHash}" />
+
+        <!--/* hidden field for the certificate content (we'll fill this later on programmatically and post it to the server) */-->
+        <input type="hidden" id="certificateField" name="certificate" />
+
+        <!--/* hidden field for the certificate thumbprint (we'll fill this later on programmatically and post it to the server) */-->
+        <input type="hidden" id="certThumbField" name="certThumb" th:value="${certThumb}" />
+
+        <!--/* hidden field for the RSA signature (we'll fill this later on programmatically and post it to the server) */-->
+        <input type="hidden" id="signatureField" name="signature" />
+
+        <div class="form-group">
+            <label>File to sign</label>
+            <p>You are signing the <i>infNFe</i> node of <a href='/LoteRps.xml'>this sample XML</a>.</p>
+        </div>
+
+        <!--/* Render a select (combo box) to list the user's certificates. For now it will be empty, we'll populate it later on (see javascript below). */-->
+        <div class="form-group">
+            <label for="certificateSelect">Choose a certificate</label>
+            <select id="certificateSelect" class="form-control"></select>
+        </div>
+
+        <!--/*
+            Action buttons. Notice that the "Sign File" button is NOT a submit button. When the user clicks the button,
+            we must first use the Web PKI component to perform the client-side computation necessary and only when
+            that computation is finished we'll submit the form programmatically (see javascript below).
+        */-->
+        <button id="signButton" type="button" class="btn btn-primary">Sign File</button>
+        <button id="refreshButton" type="button" class="btn btn-default">Refresh Certificates</button>
+
+    </form>
+
+    <!--/*
+        Once the page is loaded, we initialize the "javascript module" signatureForm passing references to our HTML
+        elements. The module will make the appropriate button wire-ups, perform the necessary computations using Web PKI
+        and submit our form once the process is complete (see file resources/static/js/signature-form.js)
+     */-->
+    <script>
+        $(document).ready(function () {
+            signatureForm.init({
+				form: $('#signForm'),
+				certificateSelect: $('#certificateSelect'),
+				signButton: $('#signButton'),
+				refreshButton: $('#refreshButton'),
+				toSignHashField: $('#toSignHashField'),
+				certificateField: $('#certificateField'),
+				signatureField: $('#signatureField'),
+                certThumbField: $('#certThumbField')
+            });
+        });
+    </script>
+
+</div>
+</body>
+</html>
