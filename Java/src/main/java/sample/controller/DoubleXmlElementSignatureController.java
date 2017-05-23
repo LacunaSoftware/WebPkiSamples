@@ -38,7 +38,7 @@ import java.util.*;
 public class DoubleXmlElementSignatureController {
 
     @RequestMapping(value = "/double-xml-element-signature", method = {RequestMethod.GET})
-    public String get(
+    public String stepOne(
             Model model,
             HttpServletResponse response
     ) throws Exception {
@@ -57,11 +57,11 @@ public class DoubleXmlElementSignatureController {
 
         // Render the signature page with the "to sign hash" in a hidden field
         model.addAttribute("toSignHash", Base64.getEncoder().encodeToString(toSignHash));
-        return "double-xml-element-signature-infrps";
+        return "double-xml-element-signature-step-one";
     }
 
     @RequestMapping(value = "/double-xml-element-signature", method = {RequestMethod.POST})
-    public String postElement(
+    public String postStepOneAndStepTwo(
             @RequestParam(value = "certificate", required = true) String certificateBase64,
             @RequestParam(value = "signature", required = true) String signatureBase64,
             @RequestParam(value = "certThumb", required = true) String certThumb,
@@ -75,16 +75,8 @@ public class DoubleXmlElementSignatureController {
         // Sign the "InfRps" element using a dummy key
         signWithDummyKey(doc, "InfRps");
 
-        // Add the X509Certificate containing the encoded certificate acquired with Web PKI on the page
-        NodeList sigElementsList = doc.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
-        Element signatureElement = (Element)sigElementsList.item(sigElementsList.getLength() - 1);
-        Element keyInfo = createKeyInfo(doc, certificateBase64);
-        signatureElement.appendChild(keyInfo);
-
-        // Set actual signature value computed with Web PKI on the page
-        NodeList sigValueList = signatureElement.getElementsByTagNameNS(XMLSignature.XMLNS, "SignatureValue");
-        Element signatureValue = (Element)sigValueList.item(sigElementsList.getLength() - 1);
-        signatureValue.setTextContent(signatureBase64);
+        // Replace Signature elements with certificate and signature value, both with Base64-encoding
+        replaceSignatureElementsWithCertAndSign(doc, certificateBase64, signatureBase64);
 
         // Encode the signed XML
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -116,11 +108,11 @@ public class DoubleXmlElementSignatureController {
         model.addAttribute("filename", filename);
         model.addAttribute("certificate", certificateBase64);
         model.addAttribute("certThumb", certThumb);
-        return "double-xml-element-signature-loterps";
+        return "double-xml-element-signature-step-two";
     }
 
-    @RequestMapping(value = "/double-xml-element-signature-loterps", method = {RequestMethod.POST})
-    public String postSecondElement(
+    @RequestMapping(value = "/double-xml-element-signature-step-two", method = {RequestMethod.POST})
+    public String postStepTwo(
             @RequestParam(value = "certificate", required = true) String certificateBase64,
             @RequestParam(value = "signature", required = true) String signatureBase64,
             @RequestParam(value = "filename", required = true) String filename,
@@ -135,16 +127,8 @@ public class DoubleXmlElementSignatureController {
         // Sign the "LoteRps" element using a dummy key
         signWithDummyKey(doc, "LoteRps");
 
-        // Add the X509Certificate containing the encoded certificate acquired with Web PKI on the page
-        NodeList sigElementsList = doc.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
-        Element signatureElement = (Element)sigElementsList.item(sigElementsList.getLength() - 1);
-        Element keyInfo = createKeyInfo(doc, certificateBase64);
-        signatureElement.appendChild(keyInfo);
-
-        // Set actual signature value computed with Web PKI on the page
-        NodeList sigValueList = signatureElement.getElementsByTagNameNS(XMLSignature.XMLNS, "SignatureValue");
-        Element signatureValue = (Element)sigValueList.item(sigValueList.getLength() - 1);
-        signatureValue.setTextContent(signatureBase64);
+        // Replace Signature elements with certificate and signature value, both with Base64-encoding
+        replaceSignatureElementsWithCertAndSign(doc, certificateBase64, signatureBase64);
 
         // Encode the signed XML
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -214,6 +198,19 @@ public class DoubleXmlElementSignatureController {
         PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyBase64));
         PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(privateKeySpec);
         return privateKey;
+    }
+
+    private void replaceSignatureElementsWithCertAndSign(Document doc, String certificateBase64, String signatureBase64) {
+
+        // Add the X509Certificate containing the encoded certificate acquired with Web PKI on the page
+        NodeList sigElementsList = doc.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
+        Element signatureElement = (Element)sigElementsList.item(sigElementsList.getLength() - 1);
+        Element keyInfo = createKeyInfo(doc, certificateBase64);
+        signatureElement.appendChild(keyInfo);
+
+        // Set actual signature value computed with Web PKI on the page
+        Element signatureValue = (Element)signatureElement.getElementsByTagNameNS(XMLSignature.XMLNS, "SignatureValue").item(0);
+        signatureValue.setTextContent(signatureBase64);
     }
 
     private Element createKeyInfo(Document doc, String certificateBase64) {

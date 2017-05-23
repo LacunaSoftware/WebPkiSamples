@@ -7,9 +7,9 @@
 
 <div class="container">
 
-    <h2>XML Element Signature</h2>
+    <h2>Double XML Element Signature - Step Two</h2>
 
-    <form action="/double-xml-element-signature-loterps" id="signForm" method="POST">
+    <form action="/double-xml-element-signature-step-two" id="signForm" method="POST">
 
         <!--/* render the "to sign hash" in a hidden input field */-->
         <input type="hidden" id="toSignHashField" name="toSignHash" th:value="${toSignHash}" />
@@ -38,7 +38,6 @@
             signaturePreSelectedCertForm.init({
                 form: $('#signForm'),
                 toSignHashField: $('#toSignHashField'),
-                certificateField: $('#certificateField'),
                 signatureField: $('#signatureField'),
                 certThumbField: $('#certThumbField')
             });

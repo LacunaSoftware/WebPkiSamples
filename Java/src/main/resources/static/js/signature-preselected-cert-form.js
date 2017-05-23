@@ -43,16 +43,13 @@ var signaturePreSelectedCertForm = (function () {
         // Get the thumbprint of the selected certificate
         var selectedCertThumbprint = formElements.certThumbField.val();
 
-        pki.readCertificate(selectedCertThumbprint).success(function (certificate) {
-            formElements.certificateField.val(certificate);
-            pki.signHash({
-                thumbprint: selectedCertThumbprint,
-                hash: formElements.toSignHashField.val(),
-                digestAlgorithm: 'SHA-1'
-            }).success(function(signature) {
-                formElements.signatureField.val(signature);
-                formElements.form.submit();
-            });
+        pki.signHash({
+            thumbprint: selectedCertThumbprint,
+            hash: formElements.toSignHashField.val(),
+            digestAlgorithm: 'SHA-1'
+        }).success(function(signature) {
+            formElements.signatureField.val(signature);
+            formElements.form.submit();
         });
     };
 
