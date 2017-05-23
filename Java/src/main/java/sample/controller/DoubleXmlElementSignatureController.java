@@ -22,6 +22,8 @@ import javax.xml.crypto.dsig.spec.TransformParameterSpec;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -38,7 +40,7 @@ import java.util.*;
 public class DoubleXmlElementSignatureController {
 
     @RequestMapping(value = "/double-xml-element-signature", method = {RequestMethod.GET})
-    public String stepOne(
+    public String step1(
             Model model,
             HttpServletResponse response
     ) throws Exception {
@@ -46,18 +48,15 @@ public class DoubleXmlElementSignatureController {
         // Open the XML to be signed
         Document doc = openXml(Util.getSampleLoteRps());
 
-        // Sign the "InfRps" element using a dummy key
+        // Sign the inner element using a dummy key
         XMLSignature sig = signWithDummyKey(doc, "InfRps");
 
-        // Extract the "to sign data"
-        byte[] toSignData = IOUtils.toByteArray(sig.getSignedInfo().getCanonicalizedData());
-
-        // Compute the digest of the "to sign data" (called the "to sign hash")
-        byte[] toSignHash = MessageDigest.getInstance("SHA-1").digest(toSignData);
+        // Compute the "to sign hash" based on the dummy signature
+        String toSignHash = getToSignHashBase64(sig);
 
         // Render the signature page with the "to sign hash" in a hidden field
-        model.addAttribute("toSignHash", Base64.getEncoder().encodeToString(toSignHash));
-        return "double-xml-element-signature-step-one";
+        model.addAttribute("toSignHash", toSignHash);
+        return "double-xml-element-signature-step1";
     }
 
     @RequestMapping(value = "/double-xml-element-signature", method = {RequestMethod.POST})
@@ -72,46 +71,40 @@ public class DoubleXmlElementSignatureController {
         // Open the XML to be signed
         Document doc = openXml(Util.getSampleLoteRps());
 
-        // Sign the "InfRps" element using a dummy key
+        // Once again, sign the inner element using a dummy key
         signWithDummyKey(doc, "InfRps");
 
         // Replace Signature elements with certificate and signature value, both with Base64-encoding
-        replaceSignatureElementsWithCertAndSign(doc, certificateBase64, signatureBase64);
+        replaceSignatureElements(doc, certificateBase64, signatureBase64);
 
-        // Encode the signed XML
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        TransformerFactory.newInstance().newTransformer().transform(new DOMSource(doc), new StreamResult(buffer));
-        byte[] signedXml = buffer.toByteArray();
+        // Encode the XML with the inner element signed
+        byte[] signedXml = encodeXml(doc);
 
         // Save the signed XML
-        String filename = UUID.randomUUID() + ".xml";
-        Files.write(Application.getTempFolderPath().resolve(filename), signedXml);
+        String filename = Util.StoreFile(signedXml, ".xml");
 
-        // Open the signed XML to be signed again
-        Document xmlDoc = openXml(signedXml);
+        // Open the signed XML to sign the outer element
+        Document doc2 = openXml(signedXml);
 
-        // Sign the "LoteRps" element using a dummy key
-        XMLSignature sig = signWithDummyKey(xmlDoc, "LoteRps");
+        // Sign the outer element using a dummy key
+        XMLSignature sig = signWithDummyKey(doc2, "LoteRps");
 
-        // Extract the "to sign data"
-        byte[] toSignData = IOUtils.toByteArray(sig.getSignedInfo().getCanonicalizedData());
-
-        // Compute the digest of the "to sign data" (called the "to sign hash")
-        byte[] toSignHash = MessageDigest.getInstance("SHA-1").digest(toSignData);
+        // Compute the "to sign hash" based on the dummy signature
+        String toSignHash = getToSignHashBase64(sig);
 
         // Render the signature page with the following parameters in hidden fields:
         // - toSignHash: "to sign hash"
         // - filename: The signed XML name
         // - certificate: Certificate content
         // - certThumb: Certificate thumbprint
-        model.addAttribute("toSignHash", Base64.getEncoder().encodeToString(toSignHash));
+        model.addAttribute("toSignHash", toSignHash);
         model.addAttribute("filename", filename);
         model.addAttribute("certificate", certificateBase64);
         model.addAttribute("certThumb", certThumb);
-        return "double-xml-element-signature-step-two";
+        return "double-xml-element-signature-step2";
     }
 
-    @RequestMapping(value = "/double-xml-element-signature-step-two", method = {RequestMethod.POST})
+    @RequestMapping(value = "/double-xml-element-signature-step2", method = {RequestMethod.POST})
     public String postStepTwo(
             @RequestParam(value = "certificate", required = true) String certificateBase64,
             @RequestParam(value = "signature", required = true) String signatureBase64,
@@ -121,23 +114,16 @@ public class DoubleXmlElementSignatureController {
     ) throws Exception {
 
         // Open the XML to be signed
-        byte[] xmlContent = Files.readAllBytes(Application.getTempFolderPath().resolve(filename));
-        Document doc = openXml(xmlContent);
+        Document doc = openXml(Util.RecoverFile(filename));
 
-        // Sign the "LoteRps" element using a dummy key
+        // Once again, sign the outer element using a dummy key
         signWithDummyKey(doc, "LoteRps");
 
         // Replace Signature elements with certificate and signature value, both with Base64-encoding
-        replaceSignatureElementsWithCertAndSign(doc, certificateBase64, signatureBase64);
+        replaceSignatureElements(doc, certificateBase64, signatureBase64);
 
-        // Encode the signed XML
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        TransformerFactory.newInstance().newTransformer().transform(new DOMSource(doc), new StreamResult(buffer));
-        byte[] signedXml = buffer.toByteArray();
-
-        // Save the signed XML
-        String newFilename = UUID.randomUUID() + ".xml";
-        Files.write(Application.getTempFolderPath().resolve(newFilename), signedXml);
+        // Save the XML with both elements signed
+        String newFilename = Util.StoreFile(encodeXml(doc), ".xml");
 
         model.addAttribute("filename", newFilename);
         return "xml-signature-info";
@@ -200,17 +186,39 @@ public class DoubleXmlElementSignatureController {
         return privateKey;
     }
 
-    private void replaceSignatureElementsWithCertAndSign(Document doc, String certificateBase64, String signatureBase64) {
+    // This method takes a XMLSignature and outputs the "to sign hash" encoded in Base64
+    private String getToSignHashBase64(XMLSignature sig) throws IOException, NoSuchAlgorithmException {
 
-        // Add the X509Certificate containing the encoded certificate acquired with Web PKI on the page
+        // Extract the "to sign data"
+        byte[] toSignData = IOUtils.toByteArray(sig.getSignedInfo().getCanonicalizedData());
+
+        // Compute the digest of the "to sign data" (called the "to sign hash")
+        byte[] toSignHash = MessageDigest.getInstance("SHA-1").digest(toSignData);
+
+        // Convert to Base64
+        return Base64.getEncoder().encodeToString(toSignHash);
+    }
+
+    private void replaceSignatureElements(Document doc, String certificateBase64, String signatureBase64) {
+
+        // Locate the last Signature element in the document
         NodeList sigElementsList = doc.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
         Element signatureElement = (Element)sigElementsList.item(sigElementsList.getLength() - 1);
-        Element keyInfo = createKeyInfo(doc, certificateBase64);
-        signatureElement.appendChild(keyInfo);
 
         // Set actual signature value computed with Web PKI on the page
-        Element signatureValue = (Element)signatureElement.getElementsByTagNameNS(XMLSignature.XMLNS, "SignatureValue").item(0);
-        signatureValue.setTextContent(signatureBase64);
+        Element signatureValueElement = (Element)signatureElement.getElementsByTagNameNS(XMLSignature.XMLNS, "SignatureValue").item(0);
+        signatureValueElement.setTextContent(signatureBase64);
+
+        // Add the X509Certificate containing the encoded certificate acquired with Web PKI on the page
+        Element keyInfo = createKeyInfo(doc, certificateBase64);
+        signatureElement.appendChild(keyInfo);
+    }
+
+    // This method encodes a XML document
+    private byte[] encodeXml(Document doc) throws TransformerException, IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        TransformerFactory.newInstance().newTransformer().transform(new DOMSource(doc), new StreamResult(buffer));
+        return buffer.toByteArray();
     }
 
     private Element createKeyInfo(Document doc, String certificateBase64) {

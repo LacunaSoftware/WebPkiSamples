@@ -30,7 +30,7 @@ var signaturePreSelectedCertForm = (function () {
         // https://webpki.lacunasoftware.com/#/Documentation#coding-the-first-lines
         // http://webpki.lacunasoftware.com/Help/classes/LacunaWebPKI.html#method_init
         pki.init({
-            ready: sign, // as soon as the component is ready we'll load the certificates
+            ready: sign, // as soon as the component is ready we'll perform the signature
             defaultError: onWebPkiError
         });
     };
@@ -40,14 +40,16 @@ var signaturePreSelectedCertForm = (function () {
     // -------------------------------------------------------------------------------------------------
     var sign = function() {
 
-        // Get the thumbprint of the selected certificate
+        // Get the thumbprint of the pre-selected certificate
         var selectedCertThumbprint = formElements.certThumbField.val();
 
+        // Perform the signature
         pki.signHash({
             thumbprint: selectedCertThumbprint,
             hash: formElements.toSignHashField.val(),
             digestAlgorithm: 'SHA-1'
         }).success(function(signature) {
+            // Fill the signature field on the form and post it back to the server
             formElements.signatureField.val(signature);
             formElements.form.submit();
         });

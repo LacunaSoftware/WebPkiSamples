@@ -94,13 +94,17 @@ var signatureForm = (function () {
             formElements.certThumbField.val(selectedCertThumbprint);
         }
 
+        // Read the selected certificate's encoding
         pki.readCertificate(selectedCertThumbprint).success(function (certificate) {
+            // Fill the encoded certificate on the form
             formElements.certificateField.val(certificate);
+            // Perform the signature
             pki.signHash({
                 thumbprint: selectedCertThumbprint,
                 hash: formElements.toSignHashField.val(),
                 digestAlgorithm: 'SHA-1'
             }).success(function(signature) {
+                // Fill the signature field on the form and post it back to the server
                 formElements.signatureField.val(signature);
                 formElements.form.submit();
             });
