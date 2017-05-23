@@ -40,7 +40,7 @@ import java.util.*;
 public class DoubleXmlElementSignatureController {
 
     @RequestMapping(value = "/double-xml-element-signature", method = {RequestMethod.GET})
-    public String step1(
+    public String start(
             Model model,
             HttpServletResponse response
     ) throws Exception {
@@ -60,7 +60,7 @@ public class DoubleXmlElementSignatureController {
     }
 
     @RequestMapping(value = "/double-xml-element-signature", method = {RequestMethod.POST})
-    public String postStepOneAndStepTwo(
+    public String step1(
             @RequestParam(value = "certificate", required = true) String certificateBase64,
             @RequestParam(value = "signature", required = true) String signatureBase64,
             @RequestParam(value = "certThumb", required = true) String certThumb,
@@ -105,7 +105,7 @@ public class DoubleXmlElementSignatureController {
     }
 
     @RequestMapping(value = "/double-xml-element-signature-step2", method = {RequestMethod.POST})
-    public String postStepTwo(
+    public String step2(
             @RequestParam(value = "certificate", required = true) String certificateBase64,
             @RequestParam(value = "signature", required = true) String signatureBase64,
             @RequestParam(value = "filename", required = true) String filename,
