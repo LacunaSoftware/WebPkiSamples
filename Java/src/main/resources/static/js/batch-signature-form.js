@@ -6,7 +6,7 @@ var webPkiLicense = null;
 //                  ^^^^--- Web PKI license goes here
 // -------------------------------------------------------------------------------------------------
 
-var ajaxSignatureForm = (function () {
+var batchSignatureForm = (function () {
 
     var pki = null;
     var formElements = {};
@@ -97,13 +97,17 @@ var ajaxSignatureForm = (function () {
         // Get the thumbprint of the selected certificate
         selectedCertThumbprint = formElements.certificateSelect.val();
 
+        // Call the preauthorizeSignatures function to ask authorization for performing all signatures (this ensures
+        // that the authorization dialog will appear only once)
         pki.preauthorizeSignatures({
             certificateThumbprint: selectedCertThumbprint,
             signatureCount: signatureCount
         }).success(function () {
             // Read the selected certificate's encoding
             pki.readCertificate(selectedCertThumbprint).success(function (certificate) {
+                // Store the certificate's encoding on a local variable
                 selectedCertContent = certificate;
+                // Call the "startAction" to get the parameters for the first signature
                 $.ajax({
                     method: 'POST',
                     url: startAction,
@@ -115,18 +119,25 @@ var ajaxSignatureForm = (function () {
         });
     };
 
+    // -------------------------------------------------------------------------------------------------
+    // Function called when the parameters for the signature of the next step have been retrieved from
+    // the server
+    // -------------------------------------------------------------------------------------------------
     var signStep = function (model) {
 
+        // If the "redirectTo" field is filled, the process is complete
         if (model.redirectTo) {
             window.location = model.redirectTo;
             return;
         }
 
+        // Perform the signature using the parameters given by the server
         pki.signHash({
             thumbprint: selectedCertThumbprint,
             hash: model.toSignHash,
             digestAlgorithm: 'SHA-1'
         }).success(function(signature) {
+            // Submit the result to the server and get the parameters for the next step
             $.ajax({
                 method: 'POST',
                 url: model.action,

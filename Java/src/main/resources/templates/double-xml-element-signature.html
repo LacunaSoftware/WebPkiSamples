@@ -34,17 +34,17 @@
     <!--/*
         Include the Javascript module ajaxSignatureForm, which contains the logic to use the Web PKI component.
     */-->
-    <script src="/js/signature-form-ajax.js"></script>
+    <script src="/js/batch-signature-form.js"></script>
 
     <!--/*
-        Once the page is loaded, we initialize the "javascript module" ajaxSignatureForm passing references to our HTML
+        Once the page is loaded, we initialize the "javascript module" batchSignatureForm passing references to our HTML
         elements. The module will make the appropriate button wire-ups and perform the necessary AJAX calls to the
         backend as well as computations using Web PKI. When the process is complete, the backend will instruct the
         Javascript to redirect the user to another page.
      */-->
     <script>
         $(document).ready(function () {
-            ajaxSignatureForm.init({
+            batchSignatureForm.init({
                 formElements: {
                     certificateSelect: $('#certificateSelect'),
                     signButton: $('#signButton'),

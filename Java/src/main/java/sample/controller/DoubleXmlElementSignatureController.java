@@ -77,7 +77,7 @@ public class DoubleXmlElementSignatureController {
         XMLSignature sig = signWithDummyKey(doc, "InfRps");
 
         // Compute the "to sign hash" based on the dummy signature
-        String toSignHash = getToSignHashBase64(sig);
+        String toSignHash = computeToSignHash(sig);
 
         // Return model with the signature parameters:
         // - toSignHash computed above
@@ -107,20 +107,14 @@ public class DoubleXmlElementSignatureController {
         // Replace Signature elements with certificate and signature value, both with Base64-encoding
         replaceSignatureElements(doc, request.certificate, request.signature);
 
-        // Encode the XML with the inner element signed
-        byte[] signedXml = encodeXml(doc);
-
         // Save the signed XML
-        String filename = Util.StoreFile(signedXml, ".xml");
-
-        // Open the signed XML to sign the outer element
-        Document doc2 = openXml(signedXml);
+        String filename = Util.StoreFile(encodeXml(doc), ".xml");
 
         // Sign the outer element using a dummy key
-        XMLSignature sig = signWithDummyKey(doc2, "LoteRps");
+        XMLSignature sig = signWithDummyKey(doc, "LoteRps");
 
         // Compute the "to sign hash" based on the dummy signature
-        String toSignHash = getToSignHashBase64(sig);
+        String toSignHash = computeToSignHash(sig);
 
         // Return model with the signature parameters:
         // - toSignHash computed above
@@ -233,7 +227,7 @@ public class DoubleXmlElementSignatureController {
     }
 
     // This method takes a XMLSignature and outputs the "to sign hash" encoded in Base64
-    private String getToSignHashBase64(XMLSignature sig) throws IOException, NoSuchAlgorithmException {
+    private String computeToSignHash(XMLSignature sig) throws IOException, NoSuchAlgorithmException {
 
         // Extract the "to sign data"
         byte[] toSignData = IOUtils.toByteArray(sig.getSignedInfo().getCanonicalizedData());
