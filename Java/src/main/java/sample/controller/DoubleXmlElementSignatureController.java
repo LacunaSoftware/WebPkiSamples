@@ -3,17 +3,15 @@ package sample.controller;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import sample.Application;
+import sample.model.SignatureParamsModel;
+import sample.model.SignatureResultModel;
 import sample.util.Util;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dsig.*;
 import javax.xml.crypto.dsig.dom.DOMSignContext;
@@ -22,7 +20,6 @@ import javax.xml.crypto.dsig.spec.TransformParameterSpec;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -30,20 +27,48 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 
+/*
+ * This is the controller responsible for the double XML element signature sample, on which
+ * two XML elements, one containing the other, are signed with the same certificate.
+ *
+ * This controller responds two routes:
+ *
+ * GET  /double-xml-element-signature             - renders the signature page
+ * POST /double-xml-element-signature/start (API) - initiates the signature of the inner element
+ * POST /double-xml-element-signature/step1 (API) - completes the signature of the inner element, starts the signature
+ *                                                  of the outer element
+ * POST /double-xml-element-signature/step2 (API) - completes the signature of the outer element
+ * GET  /double-xml-element-signature/info        - renders the success page with the download link
+ */
 @Controller
 public class DoubleXmlElementSignatureController {
 
+    /*
+     * GET /double-xml-element-signature
+     *
+	 * This action renders the signature page.
+	 */
     @RequestMapping(value = "/double-xml-element-signature", method = {RequestMethod.GET})
-    public String start(
-            Model model,
-            HttpServletResponse response
-    ) throws Exception {
+    public String get() throws Exception {
+        return "double-xml-element-signature";
+    }
+
+    /*
+     * POST /double-xml-element-signature/start (API)
+     *
+     * This API action, called via AJAX from the signature page, initiates the signature of the inner XML element and
+     * returns the signature parameters (to-sign-hash and action to which the result should be posted).
+     */
+    @RequestMapping(value = "/double-xml-element-signature/start", method = {RequestMethod.POST})
+    public @ResponseBody SignatureParamsModel start() throws Exception {
 
         // Open the XML to be signed
         Document doc = openXml(Util.getSampleLoteRps());
@@ -54,19 +79,24 @@ public class DoubleXmlElementSignatureController {
         // Compute the "to sign hash" based on the dummy signature
         String toSignHash = getToSignHashBase64(sig);
 
-        // Render the signature page with the "to sign hash" in a hidden field
-        model.addAttribute("toSignHash", toSignHash);
-        return "double-xml-element-signature-step1";
+        // Return model with the signature parameters:
+        // - toSignHash computed above
+        // - action to which the result should be posted (method step1 below)
+        SignatureParamsModel model = new SignatureParamsModel();
+        model.toSignHash = toSignHash;
+        model.action = "/double-xml-element-signature/step1";
+        return model;
     }
 
-    @RequestMapping(value = "/double-xml-element-signature", method = {RequestMethod.POST})
-    public String step1(
-            @RequestParam(value = "certificate", required = true) String certificateBase64,
-            @RequestParam(value = "signature", required = true) String signatureBase64,
-            @RequestParam(value = "certThumb", required = true) String certThumb,
-            Model model,
-            HttpServletResponse response
-    ) throws Exception {
+    /*
+     * POST /double-xml-element-signature/step1 (API)
+     *
+     * This API action, called via AJAX from the signature page with the result of the signature of the inner XML
+     * element, completes the signature of that element and starts the signature of the outer element. It returns
+     * the signature parameters for the outer element (to-sign-hash and action to which the result should be posted).
+     */
+    @RequestMapping(value = "/double-xml-element-signature/step1", method = {RequestMethod.POST})
+    public @ResponseBody SignatureParamsModel step1(@RequestBody SignatureResultModel request) throws Exception {
 
         // Open the XML to be signed
         Document doc = openXml(Util.getSampleLoteRps());
@@ -75,7 +105,7 @@ public class DoubleXmlElementSignatureController {
         signWithDummyKey(doc, "InfRps");
 
         // Replace Signature elements with certificate and signature value, both with Base64-encoding
-        replaceSignatureElements(doc, certificateBase64, signatureBase64);
+        replaceSignatureElements(doc, request.certificate, request.signature);
 
         // Encode the XML with the inner element signed
         byte[] signedXml = encodeXml(doc);
@@ -92,25 +122,25 @@ public class DoubleXmlElementSignatureController {
         // Compute the "to sign hash" based on the dummy signature
         String toSignHash = getToSignHashBase64(sig);
 
-        // Render the signature page with the following parameters in hidden fields:
-        // - toSignHash: "to sign hash"
-        // - filename: The signed XML name
-        // - certificate: Certificate content
-        // - certThumb: Certificate thumbprint
-        model.addAttribute("toSignHash", toSignHash);
-        model.addAttribute("filename", filename);
-        model.addAttribute("certificate", certificateBase64);
-        model.addAttribute("certThumb", certThumb);
-        return "double-xml-element-signature-step2";
+        // Return model with the signature parameters:
+        // - toSignHash computed above
+        // - action to which the result should be posted (method step2 below)
+        SignatureParamsModel model = new SignatureParamsModel();
+        model.toSignHash = toSignHash;
+        model.action = "/double-xml-element-signature/step2?filename=" + filename;
+        return model;
     }
 
-    @RequestMapping(value = "/double-xml-element-signature-step2", method = {RequestMethod.POST})
-    public String step2(
-            @RequestParam(value = "certificate", required = true) String certificateBase64,
-            @RequestParam(value = "signature", required = true) String signatureBase64,
+    /*
+     * POST /double-xml-element-signature/step2 (API)
+     *
+     * This API action, called via AJAX from the signature page with the result of the signature of the outer XML
+     * element, completes the signature of that element and instructs the page to redirect the user to the "info" action.
+     */
+    @RequestMapping(value = "/double-xml-element-signature/step2", method = {RequestMethod.POST})
+    public @ResponseBody SignatureParamsModel step2(
             @RequestParam(value = "filename", required = true) String filename,
-            Model model,
-            HttpServletResponse response
+            @RequestBody SignatureResultModel request
     ) throws Exception {
 
         // Open the XML to be signed
@@ -120,12 +150,28 @@ public class DoubleXmlElementSignatureController {
         signWithDummyKey(doc, "LoteRps");
 
         // Replace Signature elements with certificate and signature value, both with Base64-encoding
-        replaceSignatureElements(doc, certificateBase64, signatureBase64);
+        replaceSignatureElements(doc, request.certificate, request.signature);
 
         // Save the XML with both elements signed
         String newFilename = Util.StoreFile(encodeXml(doc), ".xml");
 
-        model.addAttribute("filename", newFilename);
+        // Return model instructing the Javascript to redirect the user to the "info" action (see method info below)
+        SignatureParamsModel model = new SignatureParamsModel();
+        model.redirectTo = "/double-xml-element-signature/info?filename=" + newFilename;
+        return model;
+    }
+
+    /*
+     * GET /double-xml-element-signature/info
+     *
+     * This action renders the success page with the download link.
+     */
+    @RequestMapping(value = "/double-xml-element-signature/info", method = {RequestMethod.GET})
+    public String info(
+            @RequestParam(value = "filename", required = true) String filename,
+            Model model
+    ) throws Exception {
+        model.addAttribute("filename", filename);
         return "xml-signature-info";
     }
 
