@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.w3.org/1999/xhtml">
-<head th:include="head"></head>
+<head th:replace="head"></head>
 <body>
 
 <div th:replace="menu"></div>
@@ -40,6 +40,11 @@
         <button id="refreshButton" type="button" class="btn btn-default">Refresh Certificates</button>
 
     </form>
+
+    <!--/*
+        Include the Javascript module signatureForm, which contains the logic to use the Web PKI component.
+    */-->
+    <script src="/js/signature-form.js"></script>
 
     <!--/*
         Once the page is loaded, we initialize the "javascript module" signatureForm passing references to our HTML
