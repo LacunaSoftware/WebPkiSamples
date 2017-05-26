@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.w3.org/1999/xhtml">
-<head th:include="head"></head>
+<head th:replace="head"></head>
 <body>
 
 	<div th:replace="menu"></div>
@@ -14,6 +14,7 @@
 				XML signature
 				<ul>
 					<li><a href="/xml-element-signature">Create a XML element signature</a></li>
+					<li><a href="/double-xml-element-signature">Sign two XML elements, one containing the other, using the same certificate</a></li>
 				</ul>
 			</li>
 			<li>

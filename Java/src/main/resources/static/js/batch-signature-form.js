@@ -6,17 +6,23 @@ var webPkiLicense = null;
 //                  ^^^^--- Web PKI license goes here
 // -------------------------------------------------------------------------------------------------
 
-var signatureForm = (function () {
+var batchSignatureForm = (function () {
 
     var pki = null;
     var formElements = {};
+    var startAction = null;
+    var signatureCount = 0;
+    var selectedCertThumbprint = null;
+    var selectedCertContent = null;
 
 	// -------------------------------------------------------------------------------------------------
     // Function called once the page is loaded
     // -------------------------------------------------------------------------------------------------
-    var init = function(fe) {
+    var init = function(args) {
 
-        formElements = fe;
+        formElements = args.formElements;
+        startAction = args.startAction;
+        signatureCount = args.signatureCount;
 
         // Wire-up of button clicks
         formElements.signButton.click(sign);
@@ -89,24 +95,60 @@ var signatureForm = (function () {
         $.blockUI();
 
         // Get the thumbprint of the selected certificate
-        var selectedCertThumbprint = formElements.certificateSelect.val();
-        if (formElements.certThumbField) {
-            formElements.certThumbField.val(selectedCertThumbprint);
+        selectedCertThumbprint = formElements.certificateSelect.val();
+
+        // Call the preauthorizeSignatures function to ask authorization for performing all signatures (this ensures
+        // that the authorization dialog will appear only once)
+        pki.preauthorizeSignatures({
+            certificateThumbprint: selectedCertThumbprint,
+            signatureCount: signatureCount
+        }).success(function () {
+            // Read the selected certificate's encoding
+            pki.readCertificate(selectedCertThumbprint).success(function (certificate) {
+                // Store the certificate's encoding on a local variable
+                selectedCertContent = certificate;
+                // Call the "startAction" to get the parameters for the first signature
+                $.ajax({
+                    method: 'POST',
+                    url: startAction,
+                    dataType: 'json',
+                    success: signStep,
+                    error: onServerError
+                });
+            });
+        });
+    };
+
+    // -------------------------------------------------------------------------------------------------
+    // Function called when the parameters for the signature of the next step have been retrieved from
+    // the server
+    // -------------------------------------------------------------------------------------------------
+    var signStep = function (model) {
+
+        // If the "redirectTo" field is filled, the process is complete
+        if (model.redirectTo) {
+            window.location = model.redirectTo;
+            return;
         }
 
-        // Read the selected certificate's encoding
-        pki.readCertificate(selectedCertThumbprint).success(function (certificate) {
-            // Fill the encoded certificate on the form
-            formElements.certificateField.val(certificate);
-            // Perform the signature
-            pki.signHash({
-                thumbprint: selectedCertThumbprint,
-                hash: formElements.toSignHashField.val(),
-                digestAlgorithm: 'SHA-1'
-            }).success(function(signature) {
-                // Fill the signature field on the form and post it back to the server
-                formElements.signatureField.val(signature);
-                formElements.form.submit();
+        // Perform the signature using the parameters given by the server
+        pki.signHash({
+            thumbprint: selectedCertThumbprint,
+            hash: model.toSignHash,
+            digestAlgorithm: 'SHA-1'
+        }).success(function(signature) {
+            // Submit the result to the server and get the parameters for the next step
+            $.ajax({
+                method: 'POST',
+                url: model.action,
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify({
+                    certificate: selectedCertContent,
+                    signature: signature
+                }),
+                dataType: 'json',
+                success: signStep,
+                error: onServerError
             });
         });
     };
@@ -118,12 +160,27 @@ var signatureForm = (function () {
         // Unblock the UI
         $.unblockUI();
         // Log the error to the browser console (for debugging purposes)
-        if (console) {
+        if (console && console.log) {
             console.log('An error has occurred on the signature browser component: ' + message, error);
         }
         // Show the message to the user. You might want to substitute the alert below with a more user-friendly UI
         // component to show the error.
         alert(message);
+    };
+
+    // -------------------------------------------------------------------------------------------------
+    // Function called if an error occurs on the backend
+    // -------------------------------------------------------------------------------------------------
+    var onServerError = function(jqXHR, textStatus, errorThrown) {
+        // Unblock the UI
+        $.unblockUI();
+        // Log the error to the browser console (for debugging purposes)
+        if (console && console.log) {
+            console.log('A server error has occurred', { jqXHR, textStatus, errorThrown });
+        }
+        // Show the message to the user. You might want to substitute the alert below with a more user-friendly UI
+        // component to show the error.
+        alert('Server error ' + jqXHR.status + ': ' + errorThrown);
     };
 
     return {
