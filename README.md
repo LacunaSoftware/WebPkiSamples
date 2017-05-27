@@ -24,3 +24,4 @@ See also
 * [Live demonstration](https://webpki.lacunasoftware.com/#/Demo)
 * [Test certificates](TestCertificates.md)
 * [Certificate properties](CertificateProperties.md)
+* [Using iText](UsingIText.md)
