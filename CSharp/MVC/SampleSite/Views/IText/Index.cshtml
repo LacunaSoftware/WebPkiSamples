@@ -1,66 +1,50 @@
-﻿@model SampleSite.Models.SignatureStartModel
-
-@{
+﻿@{
     ViewBag.Title = "PDF signature using iTextSharp";
 }
 
 <h2>PDF signature using iTextSharp</h2>
 
-@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "signForm", role = "form" })) {
-    @Html.ValidationSummary("", new { @class = "text-danger" })
+<p>This sample shows how to digitally sign a PDF using the Web PKI component on the frontend together with the iTextSharp library on the backend.</p>
 
-    @* Hidden fields used to pass data from the action to the "signature form" javascript (see below) and vice-versa *@
-    @Html.HiddenFor(m => m.CertThumbBase64, new { id = "certThumbField" })
-    @Html.HiddenFor(m => m.CertContentBase64, new { id = "certContentField" })
+<h3>Notes on usage of iTextSharp (PLEASE READ THIS)</h3>
 
-    <div class="form-group">
-        <label>File to sign</label>
-        <p>You'll be signing <a href='/Download/Sample'>this sample document</a>.</p>
-    </div>
+<p>
+	This sample is provided "as is". <b>WE DO NOT PROVIDE FREE SUPPORT ON THE USAGE OF ITEXTSHARP</b>. Please do not contact
+	us regarding problems on the usage of iTextSharp, except for problems strictly regarding integration with Web PKI.
+</p>
 
-	@* Render a select (combo box) to list the user's certificates. For now it will be empty, we'll populate it later on (see javascript below). *@
-    <div class="form-group">
-        <label for="certificateSelect">Choose a certificate</label>
-        <select id="certificateSelect" class="form-control"></select>
-    </div>
+<p>
+	The iTextSharp library is a general purpose PDF library. Its usage for cryptographic operations on PDFs such as
+	signing and timestamping is far from ideal. Implementing remote signatures (i.e. signing with a frontend component
+	such as Web PKI) is particularly troublesome. To deal with this, this sample uses the Session object to store an
+	iTextSharp object instance between requests. Please notice that this has very serious implications if you intend
+	to develop a web application that can be executed simulteneously on multiple servers.
+</p>
 
-	@*
-		Action buttons. Notice that neither buttons are submit buttons. When the user clicks a button,
-		we must first use the Web PKI component to perform the client-side computation necessary and only when
-		that computation is finished we'll submit the form programmatically (see javascript below).
-	*@
-    <button id="signButton" type="button" class="btn btn-primary">Sign File</button>
-    <button id="refreshButton" type="button" class="btn btn-default">Refresh Certificates</button>
-}
+<p>
+	The iTextSharp library is not free. You must either purchase it or use it under the AGPLv3 license, in which case
+	your web application must also be licensed under it, which means your web application must be open source (among
+	other implications).
+</p>
 
-@section Scripts {
+<h3>Recommended alternatives to iTextSharp</h3>
 
-	@*
-		The file below contains the JS lib for accessing the Web PKI component. For more information, see:
-		https://webpki.lacunasoftware.com/#/Documentation
-	*@
-    <script type="text/javascript" src="https://get.webpkiplugin.com/Scripts/LacunaWebPKI/lacuna-web-pki-2.5.0.js"></script>
+<p>In order to perform PDF signatures with Web PKI, we HIGHLY RECOMMEND using one of Lacuna Software's backend solutions:</p>
 
-	@*
-		The file below contains the logic for calling the Web PKI component. It is only an example, feel free to alter it
-		to meet your application's needs. You can also bring the code into the javascript block below if you prefer.
-	*@
-    <script type="text/javascript" src="~/Content/js/app/signature-start-form.js"></script>
+<ul>
+	<li>
+		<a href="https://pki.rest/" target="_blank">Rest PKI</a>, a cloud-based service to perform digital signatures in virtually any programming language.
+		Usage through native libraries for Java, PHP, .NET, Python, NodeJS and Ruby. Can also be hosted "on premises".
+		<ul>
+			<li>Please notice that when using Web PKI together with the Rest PKI cloud service, it is not necessary to purchase a license for Web PKI, the cost for using it is embedded in the service transaction price.</li>
+		</ul>
+	</li>
+	<li>
+		<a href="https://www.lacunasoftware.com/en/products/pki_sdk" target="_blank">PKI SDK</a>, a .NET library specific for digital signatures
+	</li>
+</ul>
 
-    <script>
-		@*
-			Once the page is ready, we call the init() function on the javascript code (see signature-start-form.js)
-			passing references to our form elements
-		*@
-		$(document).ready(function () {
-			signatureStartForm.init({
-				form: $('#signForm'),
-				certificateSelect: $('#certificateSelect'),
-				signButton: $('#signButton'),
-				refreshButton: $('#refreshButton'),
-				certThumbField: $('#certThumbField'),
-				certContentField: $('#certContentField')
-			})
-		});
-    </script>
-}
+<p>
+	<br/>
+	@Html.ActionLink("Start", "Start", null, new { id = "tryAgainButton", @class = "btn btn-primary" })
+</p>

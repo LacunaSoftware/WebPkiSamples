@@ -202,6 +202,7 @@
     <Content Include="Views\IText\Complete.cshtml" />
     <Content Include="Views\IText\SignatureInfo.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\IText\Start.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

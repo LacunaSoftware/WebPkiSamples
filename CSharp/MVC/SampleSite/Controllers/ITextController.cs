@@ -59,18 +59,24 @@ namespace SampleSite.Controllers {
 
 		private const string DigestAlgorithm = "SHA256";
 
-		/**
-		 * GET /IText
-		 * 
-		 * This action renders the signature view.
-		 */
+
 		[HttpGet]
 		public ActionResult Index() {
 			return View();
 		}
 
 		/**
-		 * POST /IText
+		 * GET /IText/Start
+		 * 
+		 * This action renders the signature view.
+		 */
+		[HttpGet]
+		public ActionResult Start() {
+			return View();
+		}
+
+		/**
+		 * POST /IText/Start
 		 * 
 		 * This action receives the encoding of the certificate chosen by the user to perform the signature
 		 * and computes the "to-sign-hash", the actual bytes that need to be signed using the certificate's
@@ -79,7 +85,7 @@ namespace SampleSite.Controllers {
 		 * This is what the iText digital signatures handbook calls the "pre-signing" step.
 		 */
 		[HttpPost]
-		public ActionResult Index(SignatureStartModel model) {
+		public ActionResult Start(SignatureStartModel model) {
 
 			byte[] toSignHash, rangeDigest;
 			PdfSignatureAppearance sigAppearance;
