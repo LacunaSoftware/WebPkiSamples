@@ -1,4 +1,12 @@
-﻿var signatureStartForm = (function () {
+﻿/*
+ * This file contains the necessary calls to the Web PKI component to perform the first step in the signature process,
+ * which consists in presenting the available certificates to the user and reading the encoding of the chosen
+ * certificate.
+ *
+ * Once we have the certificate's encoding, we'll place it in a hidden input field on the page's form and submit the
+ * form.
+ */
+var signatureStartForm = (function () {
 
 	var pki = null;
 	var formElements = {};
@@ -15,9 +23,11 @@
 		formElements.refreshButton.click(refresh);
 
 		// Block the UI while we get things ready
-		$.blockUI({ message: 'Inicializando ...' });
+		$.blockUI({ message: 'Initializing ...' });
 
-		pki = new LacunaWebPKI();
+		// Get an instance of the LacunaWebPKI object. If a license was set on Web.config, the _Layout.cshtml master
+		// view will have placed it on the global variable _webPkiLicense, which we pass to the class constructor.
+		pki = new LacunaWebPKI(_webPkiLicense);
 
 		// Call the init() method on the LacunaWebPKI object, passing a callback for when
 		// the component is ready to be used and another to be called when an error occurrs
@@ -46,7 +56,7 @@
 	// -------------------------------------------------------------------------------------------------
 	function loadCertificates() {
 
-		// Call the listCertificates() method to list the user's certificates. For more information see
+		// Call the listCertificates() function to list the user's certificates. For more information see
 		// http://webpki.lacunasoftware.com/Help/classes/LacunaWebPKI.html#method_listCertificates
 		pki.listCertificates({
 
@@ -61,7 +71,14 @@
 
 			// function that will be called to get the text that should be displayed for each option
 			selectOptionFormatter: function (cert) {
-				return cert.subjectName + ' (expires on ' + cert.validityEnd.toDateString() + ', issued by ' + cert.issuerName + ')';
+				var s = cert.subjectName + ' (issued by ' + cert.issuerName + ')';
+				var now = new Date();
+				if (now > cert.validityEnd) {
+					s = '[EXPIRED] ' + s; // useful to let the user know that his certificate has expired
+				} else if (now < cert.validityStart) {
+					s = '[NOT YET VALID] ' + s; // this is very uncommon
+				}
+				return s;
 			}
 
 		}).success(function () {
@@ -76,17 +93,24 @@
 	// Function called when the user clicks the "Sign" button
 	// -------------------------------------------------------------------------------------------------
 	function startSignature() {
+
 		// Block the UI while we perform the signature
-		$.blockUI({ message: 'Assinando ...' });
+		$.blockUI({ message: 'Signing ...' });
 
 		// Get the value attribute of the option selected on the dropdown. Since we placed the "thumbprint"
 		// property on the value attribute of each item (see function loadCertificates above), we're actually
 		// retrieving the thumbprint of the selected certificate.
 		var selectedCertThumbprint = formElements.certificateSelect.val();
+
+		// Place the selected certificate thumbprint on a hidden input field on the page's form
 		formElements.certThumbField.val(selectedCertThumbprint);
 
+		// Call the readCertificate() function on the Web PKI component passing the selected certificate's
+		// thumbprint. This retrieves the certificate's encoding.
 		pki.readCertificate(selectedCertThumbprint).success(function (certEncoded) {
+			// Place the certificate encoding in a hidden input field on the page's form
 			formElements.certContentField.val(certEncoded);
+			// Submit the form
 			formElements.form.submit();
 		});
 	}
@@ -98,8 +122,8 @@
 		// Unblock the UI
 		$.unblockUI();
 		// Log the error to the browser console (for debugging purposes)
-		if (console) {
-			console.log('An error has occurred on the signature browser component: ' + message, error);
+		if (console && console.log) {
+			console.log('An error has occurred on the signature browser component: ' + message, { message, error, origin });
 		}
 		// Show the message to the user. You might want to substitute the alert below with a more user-friendly UI
 		// component to show the error.

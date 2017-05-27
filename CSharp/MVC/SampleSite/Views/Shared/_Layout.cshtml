@@ -24,7 +24,7 @@
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Samples <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li><a href="/BasicSample">Basic Sample</a></li>
-                            <li><a href="/IText">PDF Signature using iText</a></li>
+                            <li><a href="/IText">PDF Signature using iTextSharp</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -39,6 +39,9 @@
         </footer>
     </div>
 
+	<script>
+		var _webPkiLicense = '@System.Configuration.ConfigurationManager.AppSettings["WebPkiLicense"]';
+	</script>
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)
