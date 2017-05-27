@@ -1,0 +1,56 @@
+﻿@model SampleSite.Models.SignatureCompleteModel
+
+@{
+    ViewBag.Title = "PDF signature using iText";
+}
+
+<h2>PDF signature using iText</h2>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "signForm", role = "form" })) {
+    @Html.ValidationSummary("", new { @class = "text-danger" })
+
+    @* Hidden fields used to pass data from the action to the "signature form" javascript (see below) and vice-versa *@
+    @Html.HiddenFor(m => m.CertThumbBase64, new { id = "certThumbField" })
+    @Html.HiddenFor(m => m.CertContentBase64, new { id = "certContentField" })
+    @Html.HiddenFor(m => m.ToSignHashBase64, new { id = "toSignHashField" })
+    @Html.HiddenFor(m => m.SignatureBase64, new { id = "signatureField" })
+    @Html.HiddenFor(m => m.DigestAlgorithm, new { id = "digestAlgorithmField" })
+
+
+	@* Button to start over, shown by the javascript code if something goes wrong (see below) *@
+    @Html.ActionLink("Try Again", "Start", null, new { id = "tryAgainButton", @class = "btn btn-default", style = "display: none;" })
+}
+
+@section Scripts {
+
+    @*
+		The file below contains the JS lib for accessing the Web PKI component. For more information, see:
+		https://webpki.lacunasoftware.com/#/Documentation
+	*@
+	<script type="text/javascript" src="https://get.webpkiplugin.com/Scripts/LacunaWebPKI/lacuna-web-pki-2.5.0.js"></script>
+
+	@*
+		The file below contains the logic for calling the Web PKI component. It is only an example, feel free to alter it
+		to meet your application's needs. You can also bring the code into the javascript block below if you prefer.
+	*@
+    <script type="text/javascript" src="~/Content/js/app/signature-complete-form.js"></script>
+
+    <script>
+		var formIsValid = @Html.Raw(Json.Encode(ViewData.ModelState.IsValid));
+		@*
+			Once the page is ready, we call the init() function on the javascript code (see signature-complete-form.js)
+			passing references to our form elements and the current state of our ModelState
+		*@
+		$(document).ready(function () {
+			signatureCompleteForm.init({
+				form: $('#signForm'),
+				certThumbField: $('#certThumbField'),
+				toSignHashField: $('#toSignHashField'),
+				digestAlgorithmField: $('#digestAlgorithmField'),
+				signatureField: $('#signatureField'),
+				tryAgainButton: $('#tryAgainButton'),
+				formIsValid: formIsValid
+			})
+		});
+    </script>
+}

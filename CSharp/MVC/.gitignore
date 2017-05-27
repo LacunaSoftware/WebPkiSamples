@@ -1,6 +1,9 @@
 .vs/
 *.user
 *.log
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
 packages/
-obj
-bin
+SampleSite/App_Data/
