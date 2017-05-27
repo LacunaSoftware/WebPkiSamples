@@ -4,7 +4,7 @@ Using Web PKI with iText to digitally sign PDFs
 We have samples showing how to digitally sign a PDF using the Web PKI component on the frontend together
 with the iText library on the backend in the following programming languages:
 
-* C# -- see the project [README](CSharp/) or the [ITextController](CSharp/MVC/SampleSite/Controllers/ITextController.cs)
+* C# -- see the project [README](CSharp/) or directly the [ITextController](CSharp/MVC/SampleSite/Controllers/ITextController.cs)
 * ~~Java~~ (coming soon)
 
 
@@ -20,7 +20,7 @@ such as Web PKI) is particularly troublesome. To deal with this, this sample use
 iText object instance between requests. Please notice that this has very serious implications if you intend
 to develop a web application that can be executed simulteneously on multiple servers.
 
-The iText library is not free. You must either purchase it or use it under the AGPLv3 license, in which case
+The iText library is not free. You must either purchase it or use it under the [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.en.html) license, in which case
 your web application must also be licensed under it, which means your web application must be open source (among
 other implications).
 
