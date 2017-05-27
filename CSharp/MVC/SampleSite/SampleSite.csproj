@@ -131,7 +131,7 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="Controllers\BasicSampleController.cs" />
+    <Compile Include="Controllers\RSAController.cs" />
     <Compile Include="Controllers\DownloadController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ITextController.cs" />
@@ -197,7 +197,7 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\BasicSample\Index.cshtml" />
+    <Content Include="Views\RSA\Index.cshtml" />
     <Content Include="Views\IText\Index.cshtml" />
     <Content Include="Views\IText\Complete.cshtml" />
     <Content Include="Views\IText\SignatureInfo.cshtml" />

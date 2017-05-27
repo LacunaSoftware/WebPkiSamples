@@ -1,8 +1,8 @@
 ﻿@{
-   ViewBag.Title = "Basic Sample";
+   ViewBag.Title = "Basic RSA Sample";
 }
 
-<h2>Basic Sample</h2>
+<h2>Basic RSA Sample</h2>
 
 <div class="row">
 	<div class="col-md-6">
@@ -55,19 +55,21 @@
 </div>
 
 @section scripts {
-    <script type="text/javascript" src="https://get.webpkiplugin.com/Scripts/LacunaWebPKI/lacuna-web-pki-2.5.0.js"></script>
+
+	@*
+		The file below contains the JS lib for accessing the Web PKI component. For more information, see:
+		https://webpki.lacunasoftware.com/#/Documentation
+	*@
+    <script src="https://get.webpkiplugin.com/Scripts/LacunaWebPKI/lacuna-web-pki-2.5.0.js"></script>
+
     <script src="https://rawgit.com/emn178/js-sha256/master/build/sha256.min.js"></script>
-    <script language="javascript">
 
-        // -------------------------------------------------------------------------------------------------
-        // If you have a license of the Web PKI component, place it below (you need a license to run the
-        // application outside of localhost)
-        // -------------------------------------------------------------------------------------------------
-        var webPkiLicense = null;
-        //                  ^^^^--- Web PKI license goes here
-        // -------------------------------------------------------------------------------------------------
+    <script>
 
-        var pki = new LacunaWebPKI(webPkiLicense);
+		// Get an instance of the LacunaWebPKI object. If a license was set on Web.config, the _Layout.cshtml master
+		// view will have placed it on the global variable _webPkiLicense, which we pass to the class constructor.
+		var pki = new LacunaWebPKI(_webPkiLicense);
+
         var allCerts = [];
         var hashSignature = "";
 
@@ -210,4 +212,3 @@
         $(start);
     </script>
 }
-

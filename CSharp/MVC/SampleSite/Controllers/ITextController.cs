@@ -18,12 +18,6 @@ namespace SampleSite.Controllers {
 	 * This controller shows how to digitally sign a PDF using the Web PKI component on the frontend together
 	 * with the iTextSharp library on the backend.
 	 * 
-	 * This sample is adapted from iText's handbook "Digital Signatures for PDF Documents", chapter 4 ("Creating
-	 * signatures externally"), section 4.3.3 ("Signing a document on the server using a signature created on the
-	 * client"). This document is available on the URL below (after filling out some information):
-	 * 
-	 * http://pages.itextpdf.com/ebook-digital-signatures-for-pdf.html
-	 * 
 	 * 
 	 * Notes on usage of iTextSharp (PLEASE READ THIS)
 	 * ===============================================
@@ -57,8 +51,15 @@ namespace SampleSite.Controllers {
 	 */
 	public class ITextController : Controller {
 
-		private const string DigestAlgorithm = "SHA256";
+		/**
+		 * This sample is adapted from iText's handbook "Digital Signatures for PDF Documents", chapter 4 ("Creating
+		 * signatures externally"), section 4.3.3 ("Signing a document on the server using a signature created on the
+		 * client"). This document is available on the URL below (after filling out some information):
+		 * 
+		 * http://pages.itextpdf.com/ebook-digital-signatures-for-pdf.html		 * 
+		 */
 
+		private const string DigestAlgorithm = "SHA256";
 
 		[HttpGet]
 		public ActionResult Index() {
@@ -191,6 +192,8 @@ namespace SampleSite.Controllers {
 		 * 
 		 * This action receives the result of the signature algorithm computation, performed with Web PKI on the frontend,
 		 * and composes the PDF signature with iTextSharp with this data.
+		 * 
+		 * This is what the iText digital signatures handbook calls the "post-signing" step.
 		 */
 		[HttpPost]
 		public ActionResult Complete(SignatureCompleteModel model) {
