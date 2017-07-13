@@ -1,0 +1,69 @@
+﻿@model SampleSite.Models.XmlSignatureModel
+
+@{
+    ViewBag.Title = "XML Element Signature";
+}
+
+<h2>XML Element Signature</h2>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "signForm", role = "form" })) {
+    @Html.ValidationSummary("", new { @class = "text-danger" })
+
+    @* Hidden fields used to pass data from the action to the "signature form" javascript (see below) and vice-versa *@
+    @Html.HiddenFor(m => m.ToSignHashBase64, new { id = "toSignHashField" })
+    @Html.HiddenFor(m => m.CertContentBase64, new { id = "certContentField" })
+    @Html.HiddenFor(m => m.SignatureBase64, new { id = "signatureField" })
+    @Html.HiddenFor(m => m.DigestAlgorithm, new { id = "digestAlgorithmField" })
+
+    <div class="form-group">
+        <label>File to sign</label>
+        <p>You'll be signing the <i>infNFe</i> node of <a href='/Download/NFeSample'>this sample XML</a>.</p>
+    </div>
+
+    @* Render a select (combo box) to list the user's certificates. For now it will be empty, we'll populate it later on (see javascript below). *@
+    <div class="form-group">
+        <label for="certificateSelect">Choose a certificate</label>
+        <select id="certificateSelect" class="form-control"></select>
+    </div>
+
+    @*
+        Action buttons. Notice that neither buttons are submit buttons. When the user clicks a button,
+        we must first use the Web PKI component to perform the client-side computation necessary and only when
+        that computation is finished we'll submit the form programmatically (see javascript below).
+    *@
+    <button id="signButton" type="button" class="btn btn-primary">Sign File</button>
+    <button id="refreshButton" type="button" class="btn btn-default">Refresh Certificates</button>
+}
+
+@section Scripts {
+
+    @*
+    The file below contains the JS lib for accessing the Web PKI component. For more information, see:
+    https://webpki.lacunasoftware.com/#/Documentation
+    *@
+    <script type="text/javascript" src="https://get.webpkiplugin.com/Scripts/LacunaWebPKI/lacuna-web-pki-2.5.0.js"></script>
+    @*
+        The file below contains the logic for calling the Web PKI component. It is only an example, feel free to alter it
+        to meet your application's needs. You can also bring the code into the javascript block below if you prefer.
+    *@
+    <script type="text/javascript" src="~/Content/js/app/xml-signature-form.js"></script>
+    <script>
+		@*
+			Once the page is ready, we call the init() function on the javascript code (see signature-start-form.js)
+			passing references to our form elements
+		*@
+        $(document).ready(function () {
+            xmlSignatureForm.init({
+				form: $('#signForm'),
+				certificateSelect: $('#certificateSelect'),
+				signButton: $('#signButton'),
+                refreshButton: $('#refreshButton'),
+                toSignHashField: $('#toSignHashField'),
+                certContentField: $('#certContentField'),
+                signatureField: $('#signatureField'),
+                digestAlgorithmField: $('#digestAlgorithmField')
+			})
+		});
+    </script>
+}
+

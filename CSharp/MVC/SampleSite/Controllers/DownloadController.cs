@@ -29,5 +29,12 @@ namespace SampleSite.Controllers {
             var fileContent = Storage.GetSampleDocContent();
             return File(fileContent, "application/pdf", "Sample.pdf");
         }
+
+        // GET Download/NFeSample
+        [HttpGet]
+        public ActionResult NFeSample() {
+            var fileContent = Storage.GetSampleNFeContent();
+            return File(fileContent, "application/pdf", "SampleNFe.pdf");
+        }
     }
 }
