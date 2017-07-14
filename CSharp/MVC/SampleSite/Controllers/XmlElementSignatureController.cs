@@ -15,171 +15,233 @@ using System.Xml;
 using System.Security.Cryptography.Xml;
 
 namespace SampleSite.Controllers {
-    public class XmlElementSignatureController : Controller {
 
-        private const string DigestAlgorithm = "SHA1";
+	/**
+	 * This is the controller responsible for the XML element signature sample. It responds two
+	 * routes:
+	 * 
+	 * GET /XmlElementSignature  - initiates the signature and renders the signature page
+	 * POST /XmlElementSignature - completes the signature with data received from the signature page
+	 * 
+	 */
+	public class XmlElementSignatureController : Controller {
 
-        // GET: XmlElementSignature
-        [HttpGet]
-        public ActionResult Index() {
+		private const string DigestAlgorithm = "SHA1";
 
-            var xmlDoc = openXml();
-            var xmlSig = prepareXmlSignature(xmlDoc);
+		/**
+		 * GET /XmlElementSignature
+		 * 
+		 * This action initiates a XML element signature and renders the signature page.
+		 */
+		[HttpGet]
+		public ActionResult Index() {
 
-            HashSignatureNotSetException hashSignatureNotSetException = null;
-            try {
-                xmlSig.ComputeSignature();
-            } catch (HashSignatureNotSetException ex) {
-                hashSignatureNotSetException = ex;
-            }
+			// Open the XML to be signed
+			var xmlDoc = openXml();
 
-            var toSignHash = hashSignatureNotSetException.ToSignHash;
+			// Prepare to sign the element with a "mock" RSA key which will throw a HashSignatureNotSetException exception with
+			// the "to sign hash" when asked to perform the RSA signature algorithm
+			var xmlSig = prepareXmlSignature(xmlDoc);
 
-            return View(new XmlSignatureModel() {
-                ToSignHash = toSignHash,
-                DigestAlgorithm = DigestAlgorithm
-            });
-        }
+			// Call ComputeSignature(), which will result in a HashSignatureNotSetException being thrown with the "to sign hash"
+			// computed by the .NET Framework
+			HashSignatureNotSetException hashSignatureNotSetException = null;
+			try {
+				xmlSig.ComputeSignature();
+			} catch (HashSignatureNotSetException ex) {
+				hashSignatureNotSetException = ex;
+			}
+			var toSignHash = hashSignatureNotSetException.ToSignHash;
 
-        [HttpPost]
-        public ActionResult Index(XmlSignatureModel model) {
+			// Render the signature page with the "to sign hash" on the model
+			return View(new XmlSignatureModel() {
+				ToSignHash = toSignHash,
+				DigestAlgorithm = DigestAlgorithm
+			});
+		}
 
-            var xmlDoc = openXml();
-            var xmlSig = prepareXmlSignature(xmlDoc, model.Signature);
+		/**
+		 * POST /XmlElementSignature
+		 * 
+		 * This action receives the encoding of the certificate chosen by the user and the result of the signature
+		 * algorithm, both acquired with Web PKI on the page, and composes the XML signature with this data
+		 */
+		[HttpPost]
+		public ActionResult Index(XmlSignatureModel model) {
 
-            var keyInfo = new KeyInfo();
-            var x509Data = new KeyInfoX509Data();
-            x509Data.AddCertificate(new X509Certificate(model.CertContent));
-            keyInfo.AddClause(x509Data);
-            xmlSig.KeyInfo = keyInfo;
+			// Open the XML to be signed
+			var xmlDoc = openXml();
 
-            xmlSig.ComputeSignature();
+			// Prepare to sign the element with a "mock" RSA key which will respond to the RSA signature algorithm with the
+			// signature computed on the frontend with Web PKI
+			var xmlSig = prepareXmlSignature(xmlDoc, model.Signature);
 
-            var signatureElement = xmlSig.GetXml();
-            xmlDoc.DocumentElement.AppendChild(signatureElement);
+			// Add a KeyInfo to the signature with the signer's certificate
+			xmlSig.KeyInfo = getKeyInfo(new X509Certificate(model.CertContent));
 
-            // Store signed xml
-            string fileId = null;
-            using (var outStream = Storage.CreateFile(".xml", out fileId)) {
-                xmlDoc.Save(outStream);
-            }
+			// Call ComputeSignature() (which will work this time because of the precomputed signature)
+			xmlSig.ComputeSignature();
 
-            return RedirectToAction("SignatureInfo", new SignatureInfoModel() {
-                File = fileId
-            });
-        }
+			// Add the signature element as a child of the root document (this might need to be altered to your needs!)
+			var signatureElement = xmlSig.GetXml();
+			xmlDoc.DocumentElement.AppendChild(signatureElement);
 
-        [HttpGet]
-        public ActionResult SignatureInfo(SignatureInfoModel model) {
-            return View(model);
-        }
+			// Store signed xml
+			string fileId = null;
+			using (var outStream = Storage.CreateFile(".xml", out fileId)) {
+				xmlDoc.Save(outStream);
+			}
 
-        private static XmlDocument openXml() {
+			return RedirectToAction("SignatureInfo", new SignatureInfoModel() {
+				File = fileId
+			});
+		}
 
-            var xmlDoc = new XmlDocument() {
-                PreserveWhitespace = true
-            };
+		[HttpGet]
+		public ActionResult SignatureInfo(SignatureInfoModel model) {
+			return View(model);
+		}
 
-            using (var stream = new MemoryStream(Storage.GetSampleNFeContent())) {
-                xmlDoc.Load(stream);
-            }
+		private static XmlDocument openXml() {
 
-            return xmlDoc;
-        }
+			var xmlDoc = new XmlDocument() {
+				PreserveWhitespace = true // This is needed to prevent .NET from trying to pretty-print the XML, which can break signatures
+			};
 
-        private static SignedXml prepareXmlSignature(XmlDocument xmlDoc, byte[] precomputedSignature = null) {
+			// Here we're using a sample XML, in your case this would probably come from the database or from a previous user upload
+			using (var stream = new MemoryStream(Storage.GetSampleNFeContent())) {
+				xmlDoc.Load(stream);
+			}
 
-            var rsaMock = new RSAMock(2048 /* probable signer key size in bits */, 20 /* size in bytes of the output of the digest algorithm used in the signature (SHA-1) */);
-            if (precomputedSignature != null) {
-                rsaMock.SetPrecomputedSignature(precomputedSignature);
-            }
+			return xmlDoc;
+		}
 
+		private static SignedXml prepareXmlSignature(XmlDocument xmlDoc, byte[] precomputedSignature = null) {
 
-            var xmlSig = new SignedXml(xmlDoc) {
-                SigningKey = rsaMock
-            };
-            xmlSig.SignedInfo.SignatureMethod = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
-            var reference = new Reference() {
-                Uri = "#NFe35141214314050000662550010001084271182362300",
-                DigestMethod = "http://www.w3.org/2000/09/xmldsig#sha1"
-            };
-            reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
-            reference.AddTransform(new XmlDsigC14NTransform(false));
-            xmlSig.AddReference(reference);
-            return xmlSig;
-        }
+			// Locate the element to be signed and get its ID
+			var elementToSign = (XmlElement)xmlDoc.GetElementsByTagName("infNFe", "http://www.portalfiscal.inf.br/nfe")[0];
+			var elementToSignId = elementToSign.GetAttribute("Id");
 
-        class RSAMock : RSA {
+			// Instantiate a "mock" RSA key (see class RSAMock below). We need to give it the signer key size in bits (we're
+			// guessing a 2048-bit key) and the size in bytes of the digest of the signature algorithm, which in this case
+			// is 20 (SHA-1), since we'll use the SHA-1 with RSA signature algorithm.
+			var rsaMock = new RSAMock(2048 /* guessing 2K key */, 20 /* SHA-1 output size */);
 
-            private int keySize;
-            private int toSignHashSize;
-            private byte[] precomputedToSignHash;
-            private byte[] precomputedSignature;
+			// If we have a precomputed signature (computed with Web PKI on the frontend), pass it to the "mock" RSA key
+			if (precomputedSignature != null) {
+				rsaMock.SetPrecomputedSignature(precomputedSignature);
+			}
 
-            public RSAMock(int keySize, int toSignHashSize) {
-                this.keySize = keySize;
-                this.toSignHashSize = toSignHashSize;
-            }
+			// Instantiate a SignedXml class with the "mock" RSA key
+			var xmlSig = new SignedXml(xmlDoc) {
+				SigningKey = rsaMock
+			};
 
-            public void SetPrecomputedSignature(byte[] signature, byte[] toSignHash = null) {
-                precomputedSignature = signature;
-                precomputedToSignHash = toSignHash;
-            }
+			// Set the signature method (SHA-1 with RSA)
+			xmlSig.SignedInfo.SignatureMethod = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
 
-            public override int KeySize {
-                get {
-                    return keySize;
-                }
-            }
+			// Reference the element to sign by its ID with:
+			// - Digest algorithm: SHA-1
+			// - Transformations: "Enveloped" and canonicalization (Canonical XML 1.0)
+			var reference = new Reference() {
+				Uri = "#" + elementToSignId,
+				DigestMethod = "http://www.w3.org/2000/09/xmldsig#sha1"
+			};
+			reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+			reference.AddTransform(new XmlDsigC14NTransform(false));
+			xmlSig.AddReference(reference);
+			return xmlSig;
+		}
 
-            public override string SignatureAlgorithm {
-                get {
-                    throw new NotImplementedException();
-                }
-            }
+		private static KeyInfo getKeyInfo(X509Certificate certificate) {
+			var keyInfo = new KeyInfo();
+			var x509Data = new KeyInfoX509Data();
+			x509Data.AddCertificate(certificate);
+			keyInfo.AddClause(x509Data);
+			return keyInfo;
+		}
 
-            public override string KeyExchangeAlgorithm {
-                get {
-                    throw new NotImplementedException();
-                }
-            }
+		/**
+		 * This is a "mock" RSA key whose behavior upon request by the SignedXml .NET class to perform a digital signature
+		 * operation depends on whether we have a precomputed signature (computed with Web PKI on the frontend):
+		 * 
+		 * - If we don't, it will throw a HashSignatureNotSetException with the "to sign hash"
+		 * - If we do, it will return the precomputed signature as the result of the signature operation
+		 * 
+		 * This class allows us to use the SignedXml class, which does not natively support remote signatures, to sign
+		 * with a key that is available only on the frontend.
+		 */
+		class RSAMock : RSA {
 
-            public override byte[] DecryptValue(byte[] rgb) {
+			private int keySize;
+			private int toSignHashSize;
+			private byte[] precomputedToSignHash;
+			private byte[] precomputedSignature;
 
-                var toSignHash = new byte[toSignHashSize];
-                Array.Copy(rgb, rgb.Length - toSignHashSize, toSignHash, 0, toSignHashSize);
+			public RSAMock(int keySize, int toSignHashSize) {
+				this.keySize = keySize;
+				this.toSignHashSize = toSignHashSize;
+			}
 
-                if (precomputedSignature == null) {
-                    throw new HashSignatureNotSetException(toSignHash);
-                }
+			public void SetPrecomputedSignature(byte[] signature, byte[] toSignHash = null) {
+				precomputedSignature = signature;
+				precomputedToSignHash = toSignHash;
+			}
 
-                if (precomputedToSignHash != null && !precomputedToSignHash.SequenceEqual(toSignHash)) {
-                    throw new InvalidOperationException("The given precomputed signature was done on a different hash");
-                }
+			public override int KeySize {
+				get {
+					return keySize;
+				}
+			}
 
-                return precomputedSignature;
-            }
+			public override string SignatureAlgorithm {
+				get {
+					throw new NotImplementedException();
+				}
+			}
 
-            public override byte[] EncryptValue(byte[] rgb) {
-                throw new NotImplementedException();
-            }
+			public override string KeyExchangeAlgorithm {
+				get {
+					throw new NotImplementedException();
+				}
+			}
 
-            public override RSAParameters ExportParameters(bool includePrivateParameters) {
-                throw new NotSupportedException();
-            }
+			public override byte[] DecryptValue(byte[] rgb) {
 
-            public override void ImportParameters(RSAParameters parameters) {
-                throw new NotImplementedException();
-            }
-        }
+				var toSignHash = new byte[toSignHashSize];
+				Array.Copy(rgb, rgb.Length - toSignHashSize, toSignHash, 0, toSignHashSize);
 
-        class HashSignatureNotSetException : Exception {
+				if (precomputedSignature == null) {
+					throw new HashSignatureNotSetException(toSignHash);
+				}
 
-            public byte[] ToSignHash { get; private set; }
+				if (precomputedToSignHash != null && !precomputedToSignHash.SequenceEqual(toSignHash)) {
+					throw new InvalidOperationException("The given precomputed signature was done on a different hash");
+				}
 
-            public HashSignatureNotSetException(byte[] toSignHash) : base("The result of the signature operation is not known at this point") {
-                this.ToSignHash = toSignHash;
-            }
-        }
-    }
+				return precomputedSignature;
+			}
+
+			public override byte[] EncryptValue(byte[] rgb) {
+				throw new NotImplementedException();
+			}
+
+			public override RSAParameters ExportParameters(bool includePrivateParameters) {
+				throw new NotSupportedException();
+			}
+
+			public override void ImportParameters(RSAParameters parameters) {
+				throw new NotImplementedException();
+			}
+		}
+
+		class HashSignatureNotSetException : Exception {
+
+			public byte[] ToSignHash { get; private set; }
+
+			public HashSignatureNotSetException(byte[] toSignHash) : base("The result of the signature operation is not known at this point") {
+				this.ToSignHash = toSignHash;
+			}
+		}
+	}
 }
