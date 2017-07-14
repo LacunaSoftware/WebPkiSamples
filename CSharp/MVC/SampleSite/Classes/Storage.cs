@@ -23,6 +23,19 @@ namespace SampleSite.Classes {
             return filename.Replace('.', '_');
         }
 
+        // Função que simula a criação de um arquivo, retornando uma stream para ele e um identificador que permita a
+        // sua recuperação
+        public static Stream CreateFile(string extension, out string fileId) {
+
+            var appDataPath = HttpContext.Current.Server.MapPath("~/App_Data");
+            if (!Directory.Exists(appDataPath)) {
+                Directory.CreateDirectory(appDataPath);
+            }
+            var filename = Guid.NewGuid() + extension;
+            fileId = filename.Replace('.', '_');
+            return File.Create(Path.Combine(appDataPath, filename));
+        }
+
         // Função que simula a recuperação de um arquivo previamente armazenado
         public static bool TryGetFile(string fileId, out byte[] content, out string extension) {
             var filename = fileId.Replace('_', '.');
@@ -40,6 +53,10 @@ namespace SampleSite.Classes {
 
         public static byte[] GetSampleDocContent() {
             return File.ReadAllBytes(Path.Combine(ContentPath, "SampleDocument.pdf"));
+        }
+
+        public static byte[] GetSampleNFeContent() {
+            return File.ReadAllBytes(Path.Combine(ContentPath, "SampleNFe.xml"));
         }
     }
 }

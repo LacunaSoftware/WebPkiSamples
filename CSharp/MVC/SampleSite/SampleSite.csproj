@@ -67,6 +67,7 @@
     <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
+    <Reference Include="System.Security" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -136,6 +137,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ITextController.cs" />
     <Compile Include="Controllers\SignController.cs" />
+    <Compile Include="Controllers\XmlElementSignatureController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -144,6 +146,7 @@
     <Compile Include="Models\SignatureInfoModel.cs" />
     <Compile Include="Models\SignatureStartModel.cs" />
     <Compile Include="Models\ValidateRequest.cs" />
+    <Compile Include="Models\XmlSignatureModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Classes\Storage.cs" />
   </ItemGroup>
@@ -152,6 +155,8 @@
     <Content Include="Content\css\bootstrap-theme.min.css" />
     <Content Include="Content\css\bootstrap.css" />
     <Content Include="Content\css\bootstrap.min.css" />
+    <Content Include="Content\js\app\xml-signature-form.js" />
+    <Content Include="Content\SampleNFe.xml" />
     <Content Include="favicon.ico" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -203,6 +208,8 @@
     <Content Include="Views\IText\SignatureInfo.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\IText\Start.cshtml" />
+    <Content Include="Views\XmlElementSignature\Index.cshtml" />
+    <Content Include="Views\XmlElementSignature\SignatureInfo.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
