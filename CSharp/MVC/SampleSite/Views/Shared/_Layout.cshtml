@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - WebPKI Sample Site</title>
     @Styles.Render("~/Content/css")
+    <style>
+        @RenderSection("styles", required: false)
+    </style>
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
