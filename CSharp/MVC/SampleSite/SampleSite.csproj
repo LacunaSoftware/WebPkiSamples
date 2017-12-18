@@ -25,6 +25,7 @@
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -132,6 +133,7 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\Select2Controller.cs" />
     <Compile Include="Controllers\RSAController.cs" />
     <Compile Include="Controllers\DownloadController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -155,7 +157,9 @@
     <Content Include="Content\css\bootstrap-theme.min.css" />
     <Content Include="Content\css\bootstrap.css" />
     <Content Include="Content\css\bootstrap.min.css" />
+    <Content Include="Content\css\select2.css" />
     <Content Include="Content\js\app\xml-signature-form.js" />
+    <Content Include="Content\js\select2.full.js" />
     <Content Include="Content\SampleNFe.xml" />
     <Content Include="favicon.ico" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.svg" />
@@ -210,6 +214,7 @@
     <Content Include="Views\IText\Start.cshtml" />
     <Content Include="Views\XmlElementSignature\Index.cshtml" />
     <Content Include="Views\XmlElementSignature\SignatureInfo.cshtml" />
+    <Content Include="Views\Select2\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
