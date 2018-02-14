@@ -1,0 +1,21 @@
+<h2>Sign RSA</h2>
+<h3>Perform an RSA signature algorithm computation</h3>
+
+<p>
+  Please notice that this sample shows how to perform a <i>digital signature <b>algorithm</b></i>,
+  not a <i>digital signature</i>. For more information, see
+  <a href="https://docs.lacunasoftware.com/articles/pki-guide/signatures" target="_blank">this article</a>.
+</p>
+
+<h3>Choose a certificate</h3>
+<select [(ngModel)]="selectedCertificate">
+  <option *ngFor="let c of certificates" [ngValue]="c">
+    {{c.subjectName}} (issued by {{c.issuerName}}, expires on {{ c.validityEnd | date }})
+  </option>
+</select>
+
+<h3>Text to sign</h3>
+<input [(ngModel)]="textToSign">
+
+<button (click)="signData()">Sign data</button>
+<button (click)="signHash()">Sign hash</button>
