@@ -27,6 +27,7 @@ export class SignPdfRemoteComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.messageService.add('Initializing Web PKI ...');
     this.pki.init({
       ngZone: this.ngZone,
       ready: this.onWebPkiReady,
@@ -36,7 +37,9 @@ export class SignPdfRemoteComponent implements OnInit {
 
   // Use "fat arrow" function otherwise "this" will have unpredictable value!
   private onWebPkiReady = () => {
+    this.messageService.add('Web PKI ready, loading certificates ...');
     this.pki.listCertificates().success((certs) => {
+      this.messageService.add('Certificates loaded.');
       this.certificates = certs;
     });
   }

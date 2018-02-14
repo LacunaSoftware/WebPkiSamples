@@ -17,11 +17,16 @@ export class SignRsaComponent implements OnInit {
   selectedCertificate: CertificateModel = null;
   textToSign: string = 'Hello, World!';
 
-  constructor(private configService: ConfigService, private ngZone: NgZone, private messageService: MessageService) {
+  constructor(
+    private configService: ConfigService,
+    private ngZone: NgZone,
+    private messageService: MessageService
+  ) {
     this.pki = new LacunaWebPKI(configService.webPkiLicense);
   }
 
   ngOnInit(): void {
+    this.messageService.add('Initializing Web PKI ...');
     this.pki.init({
       ngZone: this.ngZone,
       ready: this.onWebPkiReady,
@@ -31,7 +36,9 @@ export class SignRsaComponent implements OnInit {
 
   // Use "fat arrow" function otherwise "this" will have unpredictable value!
   private onWebPkiReady = () => {
+    this.messageService.add('Web PKI ready, loading certificates ...');
     this.pki.listCertificates().success((certs) => {
+      this.messageService.add('Certificates loaded.');
       this.certificates = certs;
     });
   }
@@ -45,6 +52,7 @@ export class SignRsaComponent implements OnInit {
     // Get ASCII encoding of text in Base64 format
     let data = btoa(this.textToSign);
     this.messageService.add(`Data: ${data}`);
+    this.messageService.add(`Signing ...`);
 
     this.pki.signData({
       data: data,
@@ -64,6 +72,7 @@ export class SignRsaComponent implements OnInit {
     // Get SHA-256 digest of ASCII encoding of text in Base64 format
     let hash = shajs('sha256').update(btoa(this.textToSign), 'base64').digest('base64');
     this.messageService.add(`Hash: ${hash}`);
+    this.messageService.add(`Signing ...`);
 
     this.pki.signHash({
       hash: hash,

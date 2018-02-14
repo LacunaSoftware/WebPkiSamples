@@ -3,11 +3,23 @@
 This is an [Angular](https://angular.io/) 5 project showing the usage of the [**web-pki** npm package](https://www.npmjs.com/package/web-pki)
 on TypeScript to use the [Web PKI component](https://docs.lacunasoftware.com/articles/web-pki/).
 
-**This is NOT an AngularJS project** (formerly known as "Angular 1.x").
+**This is NOT an AngularJS project** (also known as "Angular 1.x").
 
 ## Running the project
 
-To run the project, you must have [Node.js](https://nodejs.org/) and [npm](https://www.npmjs.com/get-npm) installed. Then, follow the steps below:
+To run the project, you must have [npm](https://www.npmjs.com/get-npm) installed. To check that you do, run the following on a command prompt:
+
+```sh
+npm --version
+```
+
+You must also have the [Angular CLI](https://cli.angular.io/) installed. To check:
+
+```sh
+ng --version
+```
+
+Then, follow the steps below:
 
 1. [Download the project](https://github.com/LacunaSoftware/WebPkiSamples/archive/master.zip) or clone the repository
 1. In a command prompt, navigate to the folder `Angular` and run the following commands:
