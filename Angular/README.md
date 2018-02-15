@@ -1,6 +1,6 @@
-# Web PKI Angular 2+ samples
+# Web PKI TypeScript/Angular 2+ samples
 
-This is an [Angular](https://angular.io/) 5 project showing the usage of the [**web-pki** npm package](https://www.npmjs.com/package/web-pki)
+This is an [Angular](https://angular.io/) 5 project showing the usage of the npm package [web-pki](https://www.npmjs.com/package/web-pki)
 on TypeScript to use the [Web PKI component](https://docs.lacunasoftware.com/articles/web-pki/).
 
 **This is NOT an AngularJS project** (also known as "Angular 1.x").
@@ -19,12 +19,20 @@ You must also have the [Angular CLI](https://cli.angular.io/) installed. To chec
 ng --version
 ```
 
-Then, follow the steps below:
+If you don't have Angular CLI installed, run:
 
-1. [Download the project](https://github.com/LacunaSoftware/WebPkiSamples/archive/master.zip) or clone the repository
-1. In a command prompt, navigate to the folder `Angular` and run the following commands:
-1. `npm install`
-1. `ng serve --open`
+```sh
+npm install -g @angular/cli
+```
+
+Clone this repository or [download](https://github.com/LacunaSoftware/WebPkiSamples/archive/master.zip) and extract it.
+
+Then, open a command prompt on the folder `Angular` and run:
+
+```sh
+npm install
+ng serve --open
+```
 
 This will automatically open a web browser on http://localhost:4200/ displaying the running project.
 

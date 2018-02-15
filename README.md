@@ -7,7 +7,7 @@ Choose one of the following programming languages to see the available sample pr
 
 * [Java](Java/)
 * [C#](CSharp/)
-* [Angular 2+](Angular/) (not to be confused with AngularJS, also known as Angular 1.x)
+* [TypeScript/Angular 2+](Angular/) (not to be confused with AngularJS, also known as Angular 1.x)
 
 Running samples outside of localhost
 ------------------------------------
