@@ -1,6 +1,6 @@
 import { AppPage } from './app.po';
 
-describe('web-pki-angular-samples App', () => {
+describe('web-pki-angular App', () => {
   let page: AppPage;
 
   beforeEach(() => {

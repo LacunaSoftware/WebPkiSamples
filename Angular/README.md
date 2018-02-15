@@ -34,5 +34,5 @@ This will automatically open a web browser on http://localhost:4200/ displaying 
 
 ## Visual Studio files (.sln and .csproj)
 
-The files `web-pki-angular-samples.sln` and `web-pki-angular-samples.csproj` are merely to open the Angular project
+The files `web-pki-angular.sln` and `web-pki-angular.csproj` are merely to open the Angular project
 on Visual Studio for editing. **They are not needed** to run or edit the project, you can safely ignore them.
