@@ -32,7 +32,7 @@ Then, follow the steps below:
 
 This will automatically open a web browser on http://localhost:4200/ displaying the running project.
 
-## IDE-specific files (`.sln` and `.csproj`)
+## IDE-specific files (.sln and .csproj)
 
 The files `web-pki-angular.sln` and `web-pki-angular.csproj` are merely to open the project
 on Visual Studio for editing. **They are not needed** to run or edit the project, you can safely ignore them.
