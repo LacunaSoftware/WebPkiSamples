@@ -93,6 +93,6 @@ export class SignPdfRemoteComponent implements OnInit {
       console.log(`Web PKI error ${ex.code}: ${ex.message}`);
       console.log(ex);
     }
-    this.messageService.add(`Web PKI error: ${ex.message}`);
+    this.messageService.add(`Web PKI error: ${ex.message}`, MessageTypes.Error);
   }
 }
