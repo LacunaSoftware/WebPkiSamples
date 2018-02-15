@@ -1,17 +1,17 @@
 <h2>Sign PDF remotely</h2>
 <h3>Perform a <a href="https://docs.lacunasoftware.com/articles/pki-guide/web-signatures/remote" target="_blank">remote signature</a> of a PDF file</h3>
 
-<h3>Choose a certificate</h3>
-<select [(ngModel)]="selectedCertificate">
-  <option *ngFor="let c of certificates" [ngValue]="c">
-    {{c.subjectName}} (issued by {{c.issuerName}}, expires on {{ c.validityEnd | date }})
-  </option>
-</select>
+<div class="form-group">
+  <label>Choose a certificate</label>
+  <select class="form-control" [(ngModel)]="selectedCertificate">
+    <option *ngFor="let c of certificates" [ngValue]="c">
+      {{c.subjectName}} (issued by {{c.issuerName}}, expires on {{ c.validityEnd | date }})
+    </option>
+  </select>
+</div>
 
-<p>
-  <button (click)="sign()">Sign dummy file</button>
-</p>
+<button class="btn btn-primary" (click)="sign()">Sign dummy file</button>
 
-<div class="result" *ngIf="downloadLink">
+<div class="alert alert-success" role="alert" *ngIf="downloadLink">
   File signed successfully! <a [href]="downloadLink">Click here</a> to download the signed file.
 </div>

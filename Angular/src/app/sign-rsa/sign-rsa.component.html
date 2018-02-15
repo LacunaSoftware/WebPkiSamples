@@ -7,15 +7,19 @@
   <a href="https://docs.lacunasoftware.com/articles/pki-guide/signatures" target="_blank">this article</a>.
 </p>
 
-<h3>Choose a certificate</h3>
-<select [(ngModel)]="selectedCertificate">
-  <option *ngFor="let c of certificates" [ngValue]="c">
-    {{c.subjectName}} (issued by {{c.issuerName}}, expires on {{ c.validityEnd | date }})
-  </option>
-</select>
+<div class="form-group">
+  <label>Choose a certificate</label>
+  <select class="form-control" [(ngModel)]="selectedCertificate">
+    <option *ngFor="let c of certificates" [ngValue]="c">
+      {{c.subjectName}} (issued by {{c.issuerName}}, expires on {{ c.validityEnd | date }})
+    </option>
+  </select>
+</div>
 
-<h3>Text to sign</h3>
-<input [(ngModel)]="textToSign">
+<div class="form-group">
+  <label>Text to sign</label>
+  <input class="form-control" [(ngModel)]="textToSign">
+</div>
 
-<button (click)="signData()">Sign data</button>
-<button (click)="signHash()">Sign hash</button>
+<button class="btn btn-default" (click)="signData()">Sign data</button>
+<button class="btn btn-default" (click)="signHash()">Sign hash</button>
