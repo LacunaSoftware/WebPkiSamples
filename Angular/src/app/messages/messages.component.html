@@ -4,6 +4,15 @@
     Messages
     <button class="btn btn-default btn-xs" (click)="messageService.clear()"><span class='glyphicon glyphicon-remove'></span> Clear</button>
   </h2>
-  <div class="alert alert-info" role="alert" *ngFor='let message of messageService.messages'>{{message}}</div>
+  <div
+       *ngFor='let m of messageService.messages'
+       role="alert"
+       class="alert"
+       [class.alert-info]="m.type === MessageTypes.Information"
+       [class.alert-success]="m.type === MessageTypes.Success"
+       [class.alert-warning]="m.type === MessageTypes.Warning"
+       [class.alert-danger]="m.type === MessageTypes.Error">
+    {{m.text}}
+  </div>
 
 </div>

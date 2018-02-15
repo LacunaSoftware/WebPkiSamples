@@ -1,6 +1,6 @@
 import { Component, OnInit, NgZone } from '@angular/core';
 import { LacunaWebPKI, CertificateModel, ExceptionModel } from 'web-pki';
-import { MessageService } from '../message.service';
+import { MessageService, MessageTypes } from '../message.service';
 import { ConfigService } from '../config.service';
 import { RemoteSignatureService } from '../remote-signature.service';
 
@@ -47,7 +47,7 @@ export class SignPdfRemoteComponent implements OnInit {
   sign(): void {
 
     if (this.selectedCertificate === null) {
-      this.messageService.add('Please choose a certificate');
+      this.messageService.add('Please choose a certificate!', MessageTypes.Warning);
       return;
     }
 

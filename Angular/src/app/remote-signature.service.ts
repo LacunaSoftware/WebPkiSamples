@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { SignatureAlgorithmParams } from './signature-algorithm-params';
 import { map, catchError, tap } from 'rxjs/operators';
-import { MessageService } from './message.service';
+import { MessageService, MessageTypes } from './message.service';
 
 @Injectable()
 export class RemoteSignatureService {
@@ -22,7 +22,7 @@ export class RemoteSignatureService {
         certificate: certEncoding
       })
       .pipe(
-        tap(r => { }, err => this.messageService.add(`Error starting signature: ${this.getErrorMessage(err)}`))
+        tap(r => { }, err => this.messageService.add(`Error starting signature: ${this.getErrorMessage(err)}`, MessageTypes.Error))
       );
   }
 
@@ -33,7 +33,7 @@ export class RemoteSignatureService {
         signature: signature
       })
       .pipe(
-        tap(r => { }, err => this.messageService.add(`Error completing signature: ${this.getErrorMessage(err)}`)),
+        tap(r => { }, err => this.messageService.add(`Error completing signature: ${this.getErrorMessage(err)}`, MessageTypes.Error)),
         map(x => `${this.signatureApiUrl}/${processId}`)
       );
   }

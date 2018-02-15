@@ -1,6 +1,6 @@
 import { Component, OnInit, NgZone } from '@angular/core';
 import { LacunaWebPKI, CertificateModel, ExceptionModel } from 'web-pki';
-import { MessageService } from '../message.service';
+import { MessageService, MessageTypes } from '../message.service';
 import * as shajs from 'sha.js';
 import { ConfigService } from '../config.service';
 
@@ -86,12 +86,12 @@ export class SignRsaComponent implements OnInit {
   private validateFields(): boolean {
 
     if (this.selectedCertificate === null) {
-      this.messageService.add('Please choose a certificate');
+      this.messageService.add('Please choose a certificate!', MessageTypes.Warning);
       return false;
     }
 
     if (this.textToSign === '') {
-      this.messageService.add('Please type a text to sign');
+      this.messageService.add('Please type a text to sign!', MessageTypes.Warning);
       return false;
     }
 

@@ -10,7 +10,9 @@
   </select>
 </div>
 
-<button class="btn btn-primary" (click)="sign()">Sign dummy file</button>
+<div class="form-group">
+  <button class="btn btn-primary" (click)="sign()">Sign dummy file</button>
+</div>
 
 <div class="alert alert-success" role="alert" *ngIf="downloadLink">
   File signed successfully! <a [href]="downloadLink">Click here</a> to download the signed file.
