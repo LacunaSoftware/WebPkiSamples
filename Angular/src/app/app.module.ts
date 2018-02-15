@@ -12,6 +12,7 @@ import { MessagesComponent } from './messages/messages.component';
 import { ConfigService } from './config.service';
 import { SignPdfRemoteComponent } from './sign-pdf-remote/sign-pdf-remote.component';
 import { RemoteSignatureService } from './remote-signature.service';
+import { NavMenuComponent } from './nav-menu/nav-menu.component';
 
 
 @NgModule({
@@ -20,7 +21,8 @@ import { RemoteSignatureService } from './remote-signature.service';
     SignRsaComponent,
     HomeComponent,
     MessagesComponent,
-    SignPdfRemoteComponent
+    SignPdfRemoteComponent,
+    NavMenuComponent
   ],
   imports: [
     BrowserModule,
