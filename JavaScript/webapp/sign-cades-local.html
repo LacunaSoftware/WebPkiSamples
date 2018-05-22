@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="WebPkiSamples">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Web PKI JavaScript Samples</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	<link href="css/site.css" rel="stylesheet" />
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">Web PKI JavaScript Samples</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+			<ul class="navbar-nav">
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Local Signatures</a>
+					<div class="dropdown-menu">
+						<a class="dropdown-item" href="/sign-pades-local.html">Sign PAdES</a>
+						<a class="dropdown-item" href="/sign-cades-local.html">Sign CAdES</a>
+					</div>
+				</li>
+			</ul>
+        </div>
+	</nav>
+	
+	<div class="container">
+
+		<h3 class="title">Local CAdES Signature</h3>
+
+		<form role="form">
+
+			<div class="form-group">
+				<div class="card">
+					<div class="card-body">
+						<div class="row">
+							<div class="col">
+								<span id="fileToBeSigned">No file selected!</span>
+							</div>
+							<div class="col">
+								<span id="signatureInfo"></span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="form-group" ng-show="file == null">
+				<label for="searchFileButton" style="display: block;">Submit the files to be signed*: </label>
+				<button id="searchFileButton" type="button" class="btn btn-default" ng-click="selectFiles()">
+					<i class="fas fa-search"></i> Select File
+				</button>
+			</div>
+
+			<div class="form-group">
+				<div class="form-check"><input class="form-check-input" type="checkbox" id="inclEncapContentCb" checked><label for="inclEncapContentCb">Include encapsulated content</label></div>
+			</div>
+		
+			<div class="form-group">
+				<label>Select a certificate*:</label>
+				<select id="certificateSelect" class="form-control">
+					<option value="">Select ...</option>
+				</select>
+			</div>
+		
+			<button id="signButton" type="button" class="btn btn-primary" disabled>
+				<i class="fas fa-pencil-alt"></i> Sign
+			</button>
+			<button id="refreshButton" type="button" class="btn btn-default">
+				<i class="fas fa-retweet"></i> Refresh
+			</button>
+		</form>
+		
+	</div>
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  		crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4"
+		crossorigin="anonymous"></script>
+
+	<!-- jQuery BlockUI -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
+					
+	<!-- Web PKI -->
+    <script type="text/javascript" src="https://get.webpkiplugin.com/Scripts/LacunaWebPKI/lacuna-web-pki-2.9.0.js" integrity="sha256-6HGuOyRqUi6AOCQHdC6/AG2Cty7d8+gtwtFXzr1oUfg="
+		crossorigin="anonymous"></script>
+		
+	<script>
+
+		$(document).ready(function () {
+
+			// To test outside of "localhost", place your Web PKI license on the variable "webPkiLicense".
+			var _webPkiLicense = null;
+
+			// Global variables.
+			var files = null;
+
+			// Initialize Web PKI component setting or not the license.
+			var pki = new LacunaWebPKI(_webPkiLicense);
+
+			// -------------------------------------------------------------------------------------------------
+			// Initializes the signature form.
+			// -------------------------------------------------------------------------------------------------
+			var init = function () {
+
+				// Block the UI while we get things ready.
+				$.blockUI({ message: 'Initializing ...' });
+
+				// Wireup of button clicks.
+				$('#signButton').click(sign);
+				$('#refreshButton').click(refresh);
+				$('#searchFileButton').click(searchFile);
+
+				// Call the init() method on the LacunaWebPKI object, passing a callback for when the component
+				// is ready to be used and another to be called when an error occurs on any of the subsequent
+				// operations. For more information, see:
+				// http://docs.lacunasoftware.com/en-us/articles/web-pki/get-started.html
+				// http://webpki.lacunasoftware.com/Help/classes/LacunaWebPKI.html#method_init
+				pki.init({
+					ready: loadCertificates, // As soon as the component is ready we'll load the certificates.
+					defaultError: onWebPkiError // Web PKI error callback.
+				});
+			};
+
+			// -------------------------------------------------------------------------------------------------
+			// Function called when the user clicks the "Refresh" button.
+			// -------------------------------------------------------------------------------------------------
+			function refresh() {
+
+				// Invoke the loading of the certificates.
+				loadCertificates();
+			}
+
+			// -------------------------------------------------------------------------------------------------
+			// Function called when the user clicks the "Select File" button.
+			// -------------------------------------------------------------------------------------------------
+			function searchFile() {
+
+				// Call the showFileBrowser() method on the LacunaWebPKi object, passing the dialog title and
+				// the success callback to store the opened file.
+				pki.showFileBrowser({
+					dialogTitle: 'Select the PDF to be signed'
+				}).success(function (result) {
+
+					// If the user didn't cancel the operation.
+					if (!result.userCancelled) {
+
+						// In this sample, will store the file information on "file" global variable declared
+						// above.
+						file = result.files[0];
+
+						// Show file informations on page.
+						$('#fileToBeSigned')
+							.html($('<a/>')
+								.attr('href', '#')
+								.text(file.name)
+								.click(function () { pki.openFile(file.id); }))
+							.append(' (' + displaySize(file.length) + ')');
+
+						// Enabled button
+						$('#signButton').prop('disabled', false);
+					}
+				});
+			};
+
+			// -------------------------------------------------------------------------------------------------
+			// Function called when the user clicks the "Sign" button.
+			// -------------------------------------------------------------------------------------------------
+			function sign() {
+
+				if (!file) {
+					alert('Select a file to be signed!');
+					return;
+				}
+
+				// Block the UI while we perform the signature.
+				$.blockUI({ message: 'Signing ...' });
+
+				pki.signCades({
+					fileId: file.id,
+					autoDetectCosign: true,
+					includeEncapsulatedContent: $('#inclEncapContentCb').is(':checked'),
+					output: {
+						mode: 'autoSave',
+						fileNameSuffix: '-signed',
+					},
+					certificateThumbprint: $('#certificateSelect').val(),
+					policy: 'BrazilAdrBasica',
+					trustArbitrators: [
+						// ICP-Brasil
+						pki.standardTrustArbitrators.pkiBrazil,
+						// Lacuna Software Test Root (development only!)
+						{
+							type: 'trustedRoot',
+							trustedRoot: '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'
+						}
+					]
+				}).success(function (result) {
+
+					if (result.isValid) {
+
+						// Show successful signature infomation.
+						$('#signatureInfo')
+							.html('<i class="fas fa-check" style="color: green;"></i> ')
+							.append($('<a/>')
+								.prop('href', '#')
+								.text(result.signatureInfo.file.name)
+								.click(function () { pki.openFile(result.signatureInfo.file.id); }))
+							.append(' [')
+							.append($('<a/>')
+								.prop('href', '#')
+								.text('Open file location')
+								.click(function () { pki.openFolder(result.signatureInfo.file.id); }))
+							.append(']');
+
+						// Disable upload button and sign buttons if the signature was succesful.
+						$('#signButton').prop('disabled', true);
+						$('#searchFileButton').prop('disabled', true);
+
+					} else {
+
+						// Show validation results. We chose popper package to show this information, but might
+						// want to substitute this implementation with more user-friendly UI component to show
+						// the validation results.
+						$('#signatureInfo')
+							.html('<i class="fas fa-times" style="color: red;"></i> ')
+							.append($('<a/>')
+								.prop('href', '#')
+								.attr('data-toggle', 'popover')
+								.attr('data-placement', 'bottom')
+								.attr('title', 'Validation Failed')
+								.attr('data-content', vrToString(result.signingCertificateValidationResults, ''))
+								.text('Validation Results')
+								.popover());
+
+					}
+
+					// Unblock UI.
+					$.unblockUI();
+
+				}).error(function (e) {
+					
+					// Show error. We chose popper package to show this information, but might
+					// want to substitute this implementation with more user-friendly UI component to show
+					// the error.
+					$('#signatureInfo')
+						.html('<i class="fas fa-times" style="color: red;"></i> ')
+						.append($('<a/>')
+							.prop('href', '#')
+							.attr('data-toggle', 'popover')
+							.attr('data-placement', 'bottom')
+							.attr('title', 'An error has occured')
+							.attr('data-content', e, '')
+							.text('Signature Error')
+							.popover());
+					
+					// Unblock UI.
+					$.unblockUI();
+				});
+			}
+
+			// -------------------------------------------------------------------------------------------------
+			// Function that loads the certificates, either on startup or when the user clicks the "Refresh" 
+			// button. At this point, the UI is already blocked.
+			// -------------------------------------------------------------------------------------------------
+			function loadCertificates() {
+				
+				// Block the UI while we get things ready.
+				$.blockUI({ message: 'Loading certificates ...' });
+
+				// Call the listCertificates() method to list the user's certificates.
+				pki.listCertificates({
+
+					// ID of the <select> element to the populated with the certificates.
+					selectId: 'certificateSelect',
+
+					// Function that will be called to get the text that should be displayed for each option.
+					selectOptionFormatter: function (cert) {
+						var s = cert.subjectName + ' (issued by ' + cert.issuerName + ')';
+						if (new Date() > cert.validityEnd) {
+							s = '[EXPIRED] ' + s;
+						}
+						return s;
+					}
+
+				}).success(function () {
+
+					// Once the certificates have been listed, unblock the UI.
+					$.unblockUI();
+
+				});
+			}
+
+			// -------------------------------------------------------------------------------------------------
+			// Function called if an error occurs on the Web PKI component.
+			// -------------------------------------------------------------------------------------------------
+			function onWebPkiError(message, error, origin) {
+				// Unblock the UI.
+				$.unblockUI();
+				// Log the error to the browser console (for debugging purposes).
+				if (console) {
+					console.log('An error has occurred on the signature browser component: ' + message, error);
+				}
+				// Show the message to the user. You might want to substitute the alert below with a more
+				// user-friendly UI component to show the error.
+				alert(message);
+			}
+
+			// -------------------------------------------------------------------------------------------------
+			// Function called to display chosen file's size.
+			// -------------------------------------------------------------------------------------------------
+			function displaySize(size) {
+				if (size) {
+					if (size >= 1048576) {
+						return (size / 1048576).toFixed(2) + ' MB';
+					} else if (size > 1024) {
+						return (size / 1024).toFixed(2) + ' KB';
+					} else {
+						return size.toString() + ' bytes';
+					}
+				} else {
+					return "";
+				}
+			}
+
+			// -------------------------------------------------------------------------------------------------
+			// Function called to convert ValidationResults into a string.
+			// -------------------------------------------------------------------------------------------------
+			function vrToString(vr, ident) {
+				var text = '';
+				var itemIdent = ident || '   ';
+				var i = 0;
+
+				if (vr.errors.length) {
+					text += ident + 'Errors:\n';
+				}
+				for (i = 0; i < vr.errors.length; i++) {
+					text += itemIdent + '- ' + vr.errors[i].message;
+					if (vr.errors[i].detail) {
+						text += ' (' + vr.errors[i].detail + ')';
+					}
+					text += '\n';
+					if (vr.errors[i].innerValidationResults) {
+						text += vrToString(vr.errors[i].innerValidationResults, itemIdent + '\t');
+					}
+				}
+
+				if (vr.warnings.length) {
+					text += ident + 'Warnings:\n';
+				}
+				for (i = 0; i < vr.warnings.length; i++) {
+					text += itemIdent + '- ' + vr.warnings[i].message;
+					if (vr.warnings[i].detail) {
+						text += ' (' + vr.warnings[i].detail + ')';
+					}
+					text += '\n';
+					if (vr.warnings[i].innerValidationResults) {
+						text += vrToString(vr.warnings[i].innerValidationResults, ident + '\t');
+					}
+				}
+
+				if (vr.passedChecks.length) {
+					text += ident + 'Passed Checks:\n';
+				}
+				for (i = 0; i < vr.passedChecks.length; i++) {
+					text += itemIdent + '- ' + vr.passedChecks[i].message;
+					if (vr.passedChecks[i].detail) {
+						text += ' (' + vr.passedChecks[i].detail + ')';
+					}
+					text += '\n';
+					if (vr.passedChecks[i].innerValidationResults) {
+						text += vrToString(vr.passedChecks[i].innerValidationResults, ident + '\t');
+					}
+				}
+				return text;
+			}
+
+			init();
+
+		});
+
+	</script>
+
+</body>
+</html>
