@@ -1,0 +1,13 @@
+﻿h3.title {
+  margin-top: 20px;
+}
+
+.popover {
+  white-space: pre-wrap;
+  max-width: 500px;  
+}
+
+#certificateSelect {
+  width: inherit;
+  height: inherit;
+}
