@@ -5,6 +5,7 @@ This repository contains sample web applications demonstrating the use of the [W
 
 Choose one of the following programming languages to see the available sample projects:
 
+* [JavaScript](JavaScript) (only front-end features)
 * [Java](Java/)
 * [C#](CSharp/)
 * [TypeScript/Angular 2+](Angular/) (not to be confused with AngularJS, also known as Angular 1.x)

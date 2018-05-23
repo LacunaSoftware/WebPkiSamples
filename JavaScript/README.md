@@ -16,9 +16,10 @@ npm --version
 
 Then, follow the steps below:
 
-1. Clone this repository or [download](https://github.com/LacunaSoftware/WebPkiSamples/archive/master.zip) and extract it
+1. [Download the project](https://github.com/LacunaSoftware/WebPkiSamples/archive/master.zip) or clone the 
+repository
 
-1. Open a command prompt on the folder `JavaScript` and run:
+1. Open a command prompt on the folder `JavaScript`:
 
 1. Install dependencies: `npm install`
 
