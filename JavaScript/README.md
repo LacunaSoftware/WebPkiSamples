@@ -2,8 +2,8 @@ Web PKI JavaScript samples
 =======================
 
 This folder contains a simple front-end application using only JavaScript that shows how to use the
-[Web PKI component](https://webpki.lacunasoftware.com/). This project only uses a back-end logic to
-provide the static files using Node.js and Express.
+[Web PKI component](https://webpki.lacunasoftware.com/). This project only uses Node.js and Express
+to provide the static files.
 
 Running the project
 ------------------
