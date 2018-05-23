@@ -61,7 +61,7 @@
 		
 			<div class="form-group">
 				<label>Select a certificate*:</label>
-				<select id="certificateSelect" class="form-control">
+				<select id="certificateSelect" class="form-control" >
 					<option value="">Select ...</option>
 				</select>
 			</div>
@@ -135,6 +135,38 @@
 
 				// Invoke the loading of the certificates.
 				loadCertificates();
+			}
+
+			// -------------------------------------------------------------------------------------------------
+			// Function that loads the certificates, either on startup or when the user clicks the "Refresh" 
+			// button. At this point, the UI is already blocked.
+			// -------------------------------------------------------------------------------------------------
+			function loadCertificates() {
+				
+				// Block the UI while we get things ready.
+				$.blockUI({ message: 'Loading certificates ...' });
+
+				// Call the listCertificates() method to list the user's certificates.
+				pki.listCertificates({
+
+					// ID of the <select> element to the populated with the certificates.
+					selectId: 'certificateSelect',
+
+					// Function that will be called to get the text that should be displayed for each option.
+					selectOptionFormatter: function (cert) {
+						var s = cert.subjectName + ' (issued by ' + cert.issuerName + ')';
+						if (new Date() > cert.validityEnd) {
+							s = '[EXPIRED] ' + s;
+						}
+						return s;
+					}
+
+				}).success(function () {
+
+					// Once the certificates have been listed, unblock the UI.
+					$.unblockUI();
+
+				});
 			}
 
 			// -------------------------------------------------------------------------------------------------
@@ -233,9 +265,9 @@
 								.prop('href', '#')
 								.attr('data-toggle', 'popover')
 								.attr('data-placement', 'bottom')
-								.attr('title', 'Validation Failed')
+								.attr('title', 'Validation Results')
 								.attr('data-content', vrToString(result.signingCertificateValidationResults, ''))
-								.text('Validation Results')
+								.text('Validation Error')
 								.popover());
 
 					}
@@ -261,38 +293,6 @@
 
 					// Unblock UI
 					$.unblockUI();
-				});
-			}
-
-			// -------------------------------------------------------------------------------------------------
-			// Function that loads the certificates, either on startup or when the user clicks the "Refresh" 
-			// button. At this point, the UI is already blocked.
-			// -------------------------------------------------------------------------------------------------
-			function loadCertificates() {
-				
-				// Block the UI while we get things ready.
-				$.blockUI({ message: 'Loading certificates ...' });
-
-				// Call the listCertificates() method to list the user's certificates.
-				pki.listCertificates({
-
-					// ID of the <select> element to the populated with the certificates.
-					selectId: 'certificateSelect',
-
-					// Function that will be called to get the text that should be displayed for each option.
-					selectOptionFormatter: function (cert) {
-						var s = cert.subjectName + ' (issued by ' + cert.issuerName + ')';
-						if (new Date() > cert.validityEnd) {
-							s = '[EXPIRED] ' + s;
-						}
-						return s;
-					}
-
-				}).success(function () {
-
-					// Once the certificates have been listed, unblock the UI.
-					$.unblockUI();
-
 				});
 			}
 

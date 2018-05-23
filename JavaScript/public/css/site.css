@@ -6,3 +6,8 @@
   white-space: pre-wrap;
   max-width: 500px;  
 }
+
+#certificateSelect {
+  width: inherit;
+  height: inherit;
+}
